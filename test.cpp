@@ -219,18 +219,23 @@ int main(int argc, char* argv[]){
 	//initialize camera__________________________
 	VideoCapture capture;
 
+	//enable this to capture mp4 file
+	//capture.open("/home/jius/Desktop/ball-tracking-platform/ball_tracker/samples/test1.mp4");
+	
+	
 	int CAM_NUMBER = 0;
 	for ( ; CAM_NUMBER<3 ; CAM_NUMBER++){
 		capture.open(CAM_NUMBER);
 		if (capture.isOpened()){
-			printf("/dev/video%d successfully opened\n", CAM_NUMBER);
+			printf("# /dev/video%d successfully opened\n", CAM_NUMBER);
 			break;
 		}
 	}
 	if (CAM_NUMBER == 3){
-		perror("ERROR: NO dev/video* DEVICE CONNECTED");
+		perror("\nERROR: NO dev/video* DEVICE CONNECTED\n");
 		return -1;
 	}
+	
 
 	//set height and width of capture frame
 	capture.set(CV_CAP_PROP_FRAME_WIDTH,FRAME_WIDTH);
@@ -269,7 +274,8 @@ int main(int argc, char* argv[]){
 	printServoConfig(config);
 	printf("\n### All parameters setted, ready to go...\n\n");
 
-	usleep(2000000); //for debug
+	usleep(1500000); //for debug
+	int print_counter = 0; //for debug
 	//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 	while(true){
 		//store image to matrix
@@ -293,9 +299,10 @@ int main(int argc, char* argv[]){
 		printf("encode result: %s\n", write_buffer);
 
 		bytes_written = write(fd, write_buffer, sizeof(ServoConfig_t));
-		//printf("\n===> [%s] written to ttyACM0 \n", write_buffer);
-		printServoConfig(config);
-		printf("===> %d Bytes written to ttyACM0\n\n", bytes_written);
+		printf("# [%d] %s written to ttyACM0 \n", print_counter, write_buffer);
+		//printServoConfig(config);
+		printf("# [%d] %d Bytes written to ttyACM0\n\n", print_counter, bytes_written);
+		print_counter++;	//for debug
 
 		/*--------------------------------------------------------------------------------------*/
 
@@ -311,13 +318,30 @@ int main(int argc, char* argv[]){
 
 		config->ServoX++;
 		config->ServoY++;
-		usleep(1000000);
 
 	}//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+
+//__EXIT ROUTINE __________________________
+	printf("_____ EXIT ROUTINE _________ \n\n");
+
+	//release VideoCapture
+	printf("# Release cv::VideoCapture... ");
+	capture.release();
+	printf("Done.\n");
+
+	//destroy all windows
+	printf("# Destroy all windows... ");
+	cv::destroyAllWindows();
+	printf("Done.\n");
+
+	//free fd and structures
+	printf("# Close file descriptor and free data structures... ");
 	close(fd);
 	free(config);
 	free(write_buffer);
+
+	printf("Done.\n____________________________\n\n");
 
 	return 0;
 }

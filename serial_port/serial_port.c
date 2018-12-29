@@ -72,7 +72,7 @@ void setSerialAttributes(int fd){
 		printf("\n  ERROR ! in Setting attributes");
 	}
 	else{
-		printf("\n  BaudRate = %d \n  StopBits = 1 \n  Parity   = none", BAUD_RATE);
+		printf("\n  BaudRate = %d \n  StopBits = 1 \n  Parity   = none\n\n", BAUD_RATE);
 	}
 }
 
