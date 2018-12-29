@@ -1,2 +1,2 @@
 # ball-tracking-platform
-control of 2 axis platform for ball stabilize purpose [using atmega2560, camera, servos]
+Platform control using OpenCV for ball tracking and arduino to move the servos
