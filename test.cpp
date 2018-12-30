@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include <iostream>
-//#include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
 
 #include <stdio.h>
@@ -15,183 +14,10 @@
 #include <errno.h>   /* ERROR Number Definitions           */
 
 #include "serial_port/serial_port.h"
-//#include <ball_tracking.h>	//to be implemented
+#include "ball_tracker/ball_tracker.h"
+#include "pid/pid.h"
 
 using namespace cv;
-//initial min and max HSV filter values.
-//these will be changed using trackbars
-int H_MIN = 0;
-int H_MAX = 256;
-int S_MIN = 0;
-int S_MAX = 256;
-int V_MIN = 0;
-int V_MAX = 256;
-//default capture width and height
-const int FRAME_WIDTH = 640;
-const int FRAME_HEIGHT = 480;
-//max number of objects to be detected in frame
-const int MAX_NUM_OBJECTS=50;
-//minimum and maximum object area
-const int MIN_OBJECT_AREA = 20*20;
-const int MAX_OBJECT_AREA = FRAME_HEIGHT*FRAME_WIDTH/1.5;
-//names that will appear at the top of each window
-const String windowName = "Original Image";
-const String windowName1 = "HSV Image";
-const String windowName2 = "Thresholded Image";
-const String windowName3 = "After Morphological Operations";
-const String trackbarWindowName = "Trackbars";
-
-const Scalar RED = Scalar(0, 0, 254);
-const Scalar GREEN = Scalar(0, 254, 0);
-const Scalar BLUE = Scalar(254, 0, 0);
-
-const char* serialPorts[5]= {	ttyACM0,
-								ttyACM1,
-								ttyACM2,
-								ttyACM3,
-								ttyACM4	
-							};
-
-
-void on_trackbar( int, void* )
-{//This function gets called whenever a
-	// trackbar position is changed
-
-}
-
-String intToString(int number){
-	std::stringstream ss;
-	ss << number;
-	return ss.str();
-}
-
-void createTrackbars(){
-
-	//create window for trackbars
-    namedWindow(trackbarWindowName,0);
-
-	//create memory to store trackbar name on window
-	char TrackbarName[50];
-	sprintf( TrackbarName, "H_MIN", H_MIN);
-	sprintf( TrackbarName, "H_MAX", H_MAX);
-	sprintf( TrackbarName, "S_MIN", S_MIN);
-	sprintf( TrackbarName, "S_MAX", S_MAX);
-	sprintf( TrackbarName, "V_MIN", V_MIN);
-	sprintf( TrackbarName, "V_MAX", V_MAX);
-	//create trackbars and insert them into window
-	//3 parameters are: the address of the variable that is changing when the trackbar is moved(eg.H_LOW),
-	//the max value the trackbar can move (eg. H_HIGH), 
-	//and the function that is called whenever the trackbar is moved(eg. on_trackbar)
-	//                                  ---->    ---->     ---->      
-    createTrackbar( "H_MIN", trackbarWindowName, &H_MIN, H_MAX, on_trackbar );
-    createTrackbar( "H_MAX", trackbarWindowName, &H_MAX, H_MAX, on_trackbar );
-    createTrackbar( "S_MIN", trackbarWindowName, &S_MIN, S_MAX, on_trackbar );
-    createTrackbar( "S_MAX", trackbarWindowName, &S_MAX, S_MAX, on_trackbar );
-    createTrackbar( "V_MIN", trackbarWindowName, &V_MIN, V_MAX, on_trackbar );
-    createTrackbar( "V_MAX", trackbarWindowName, &V_MAX, V_MAX, on_trackbar );
-
-
-}
-
-void drawObjectV1(int x, int y, Mat &frame){
-
-	//Draw version 1
-
-	circle(frame,Point(x,y),24,Scalar(0,255,0),3);
-	//vertical line
-    if(y-25>0)
-    line(frame,Point(x,0),Point(x,y-25),Scalar(0,255,0),2);
-    else line(frame,Point(x,y),Point(x,0),Scalar(0,255,0),2);
-    if(y+25<FRAME_HEIGHT)
-    line(frame,Point(x,y),Point(x,y+25),Scalar(0,255,0),2);
-    else line(frame,Point(x,y),Point(x,FRAME_HEIGHT),Scalar(0,255,0),2);
-
-	//orizzontal line
-    if(x-25>0)
-    line(frame,Point(x,y),Point(x-25,y),Scalar(0,255,0),2);
-    else line(frame,Point(x,y),Point(0,y),Scalar(0,255,0),2);
-    if(x+25<FRAME_WIDTH)
-    line(frame,Point(x,y),Point(x+25,y),Scalar(0,255,0),2);
-    else line(frame,Point(x,y),Point(FRAME_WIDTH,y),Scalar(0,255,0),2);
-
-	putText(frame,intToString(x)+","+intToString(y),Point(x,y+30),1,1,Scalar(0,255,0),2);
-
-}
-void drawObjectV2(int x, int y, Mat &frame){
-
-	//Draw version 2
-	circle(frame,Point(x,y),35,GREEN, 1);
-
-    line(frame,Point(x,0),Point(x,FRAME_HEIGHT),RED, 2);
-	line(frame,Point(0,y),Point(FRAME_WIDTH,y),BLUE,2);
-
-	putText(frame,intToString(y),Point(x+2,y-42),1,1,BLUE,2);
-	putText(frame,intToString(x),Point(x+40,y+10),1,1,RED,2);
-
-}
-
-void morphOps(Mat &thresh){
-
-	//create structuring element that will be used to "dilate" and "erode" image.
-	//the element chosen here is a 3px by 3px rectangle
-
-	Mat erodeElement = getStructuringElement( MORPH_RECT,Size(3,3));
-    //dilate with larger element so make sure object is nicely visible
-	Mat dilateElement = getStructuringElement( MORPH_RECT,Size(6,6));
-
-	erode(thresh,thresh,erodeElement);
-	erode(thresh,thresh,erodeElement);
-
-
-	dilate(thresh,thresh,dilateElement);
-	dilate(thresh,thresh,dilateElement);
-	
-
-
-}
-void trackFilteredObject(int &x, int &y, Mat threshold, Mat &cameraFeed){
-
-	Mat temp;
-	threshold.copyTo(temp);
-	//these two vectors needed for output of findContours
-	std::vector< std::vector<cv::Point> > contours;
-	std::vector<cv::Vec4i> hierarchy;
-	//find contours of filtered image using openCV findContours function
-	findContours(temp,contours,hierarchy,CV_RETR_CCOMP,CV_CHAIN_APPROX_SIMPLE );
-	//use moments method to find our filtered object
-	double refArea = 0;
-	bool objectFound = false;
-	if (hierarchy.size() > 0) {
-		int numObjects = hierarchy.size();
-        //if number of objects greater than MAX_NUM_OBJECTS we have a noisy filter
-        if(numObjects<MAX_NUM_OBJECTS){
-			for (int index = 0; index >= 0; index = hierarchy[index][0]) {
-
-				Moments moment = moments((cv::Mat)contours[index]);
-				double area = moment.m00;
-
-				//if the area is less than 20 px by 20px then it is probably just noise
-				//if the area is the same as the 3/2 of the image size, probably just a bad filter
-				//we only want the object with the largest area so we safe a reference area each
-				//iteration and compare it to the area in the next iteration.
-                if(area>MIN_OBJECT_AREA && area<MAX_OBJECT_AREA && area>refArea){
-					x = moment.m10/area;
-					y = moment.m01/area;
-					objectFound = true;
-					refArea = area;
-				}else objectFound = false;
-
-
-			}
-			//let user know you found an object
-			if(objectFound ==true){
-				putText(cameraFeed,"Tracking Object",Point(0,50),2,1,Scalar(0,255,0),2);
-				//draw object location on screen
-				drawObjectV2(x,y,cameraFeed);}
-
-		}else putText(cameraFeed,"TOO MUCH NOISE! ADJUST FILTER",Point(0,50),1,2,Scalar(0,0,255),2);
-	}
-}
 
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -215,14 +41,13 @@ int main(int argc, char* argv[]){
 	//create slider bars for HSV filtering
 	createTrackbars();
 
-
 	//initialize camera__________________________
 	VideoCapture capture;
 
 	//enable this to capture mp4 file
-	//capture.open("/home/jius/Desktop/ball-tracking-platform/ball_tracker/samples/test1.mp4");
+	capture.open("/home/jius/Desktop/ball-tracking-platform/ball_tracker/samples/test2.mp4");
 	
-	
+	/*
 	int CAM_NUMBER = 0;
 	for ( ; CAM_NUMBER<3 ; CAM_NUMBER++){
 		capture.open(CAM_NUMBER);
@@ -235,32 +60,29 @@ int main(int argc, char* argv[]){
 		perror("\nERROR: NO dev/video* DEVICE CONNECTED\n");
 		return -1;
 	}
-	
+	*/
 
 	//set height and width of capture frame
 	capture.set(CV_CAP_PROP_FRAME_WIDTH,FRAME_WIDTH);
 	capture.set(CV_CAP_PROP_FRAME_HEIGHT,FRAME_HEIGHT);
 	
+
 	//initialize serial communication______________
 	int fd = -1;
-	for (int k=0 ; k<5 ; k++){
-		fd = open(serialPorts[k], O_RDWR | O_NOCTTY | O_NDELAY);
-		if (fd >= 0){
-			printf("# %s successfully opened\n", serialPorts[k]);
-			break;
-		}
+	int device_opened = openSerialCommunication(&fd);
+	if(device_opened >= 0){
+		setSerialAttributes(fd);
+		printf("# %s successfully opened\n", serialPorts[device_opened]);
 	}
-	if (fd < 0){
+	else{
 		printf("\nERROR: no serial device avaible!\n");
 		return -1;
 	}
-	
-	setSerialAttributes(fd);
-	
+
 	//_____________________________________________
 
 	//initialize write_buffer_______________________
-	uint8_t* write_buffer = (uint8_t*)malloc(sizeof(uint8_t)*sizeof(ServoConfig_t));
+	uint8_t* write_buffer = (uint8_t*)malloc(sizeof(ServoConfig_t));	//devo allocare di piu'?
 	int bytes_written = 0;
 	printf("# write_buffer allocated\n");
 
@@ -274,7 +96,16 @@ int main(int argc, char* argv[]){
 	printServoConfig(config);
 	printf("\n### All parameters setted, ready to go...\n\n");
 
-	usleep(1500000); //for debug
+
+	//set mask for ball detection
+	H_MIN = 41;
+	H_MAX = 69;
+	S_MIN = 66;
+	S_MAX = 255;
+	V_MIN = 48;
+	V_MAX = 185;
+
+	usleep(1000000); //for debug
 	int print_counter = 0; //for debug
 	//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 	while(true){
@@ -325,14 +156,20 @@ int main(int argc, char* argv[]){
 //__EXIT ROUTINE __________________________
 	printf("_____ EXIT ROUTINE _________ \n\n");
 
+	//destroy all windows
+	printf("# Destroy all windows... ");
+	destroyAllWindows();
+	printf("Done.\n");
+
 	//release VideoCapture
 	printf("# Release cv::VideoCapture... ");
 	capture.release();
 	printf("Done.\n");
 
-	//destroy all windows
-	printf("# Destroy all windows... ");
-	cv::destroyAllWindows();
+	//release Mat
+	printf("# Release cv::Mat... ");
+	cameraFeed.release();
+	threshold.release();
 	printf("Done.\n");
 
 	//free fd and structures

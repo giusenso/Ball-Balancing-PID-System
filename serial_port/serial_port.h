@@ -1,6 +1,7 @@
-
 #ifndef SERIAL_PORT_H
 #define SERIAL_PORT_H
+
+#include "../utils.h"
 
 #include <stdint.h>
 
@@ -16,16 +17,11 @@
 #define     true        1
 
 
-typedef struct ServoConfig {
-    uint8_t     ServoX;
-    uint8_t     ServoY;
-    uint8_t     flag1;
-    uint8_t     flag2;
-} ServoConfig_t;
+extern const char* serialPorts[5];
 
 
 //___funcion signature_________________________________
-bool openSerialCommunication(int* fd);
+int openSerialCommunication(int* fd);
 void setSerialAttributes(int fd);
 void encodeConfig(ServoConfig_t* config, uint8_t* buf);
 void decodeConfig(uint8_t* buf, ServoConfig_t* config);

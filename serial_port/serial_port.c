@@ -11,7 +11,6 @@
 	/*-------------------------------------------------------------*/
 
 #include <stdio.h>
-#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 #include <fcntl.h>   /* File Control Definitions           */
@@ -22,27 +21,25 @@
 #include "serial_port.h"
 
 
-	//initialize serial communication______________
-bool openSerialCommunication(int* fd){
+const char* serialPorts[5]= {	ttyACM0,
+								ttyACM1,
+								ttyACM2,
+								ttyACM3,
+								ttyACM4	
+							};
 
-	const char* serialPorts[5]= {	ttyACM0,
-									ttyACM1,
-									ttyACM2,
-									ttyACM3,
-									ttyACM4	
-								};
 
-	for (int k=0 ; k<5 ; k++){
+//initialize serial communication______________
+int openSerialCommunication(int* fd){
+	int k = 0;
+	for ( ; k<5 ; k++){
 		*fd = open(serialPorts[k], O_RDWR | O_NOCTTY | O_NDELAY);
 		if (*fd >= 0){
-			printf("# %s successfully opened\n", serialPorts[k]);
-			return true;
+			return k;
 		}
 	}
-	if (*fd < 0){
-		printf("\nERROR: no serial device avaible!\n");
-		return false;
-	}
+	
+	return -1;
 }
 
 
@@ -109,7 +106,7 @@ void printEncodedPack(uint8_t* buf){
 	
 	printf("\n	 ======== ======== ======== ========\n	|");
 
-	for (int i=0 ; i<sizeof(ServoConfig_t) ; i++){
+	for (unsigned int i=0 ; i<sizeof(ServoConfig_t) ; i++){
 		printf("  0x%02X  |", buf[i]);
 	}
 	printf("\n	 ======== ======== ======== ========\n");
