@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include <fcntl.h>   /* File Control Definitions           */
 #include <unistd.h>  /* UNIX Standard Definitions 	   */ 
 #include <errno.h>   /* ERROR Number Definitions           */
@@ -35,8 +36,9 @@ int main(int argc, char* argv[]){
 	//matrix storage for binary threshold image
 	Mat threshold;
 
-	//x and y values for the location of the object
-	int x=0, y=0;
+	//create ball instance
+	Ball* b = createBall(0, 0);
+	printBall(b, -1);
 
 	//create slider bars for HSV filtering
 	createTrackbars();
@@ -45,9 +47,9 @@ int main(int argc, char* argv[]){
 	VideoCapture capture;
 
 	//enable this to capture mp4 file
-	capture.open("/home/jius/Desktop/ball-tracking-platform/ball_tracker/samples/test2.mp4");
+	//capture.open("/home/jius/Desktop/ball-tracking-platform/ball_tracker/samples/test3.mp4");
 	
-	/*
+	
 	int CAM_NUMBER = 0;
 	for ( ; CAM_NUMBER<3 ; CAM_NUMBER++){
 		capture.open(CAM_NUMBER);
@@ -60,7 +62,7 @@ int main(int argc, char* argv[]){
 		perror("\nERROR: NO dev/video* DEVICE CONNECTED\n");
 		return -1;
 	}
-	*/
+	
 
 	//set height and width of capture frame
 	capture.set(CV_CAP_PROP_FRAME_WIDTH,FRAME_WIDTH);
@@ -94,23 +96,46 @@ int main(int argc, char* argv[]){
 		config->flag2  =	 0xF0;
 	
 	printServoConfig(config);
-	printf("\n### All parameters setted, ready to go...\n\n");
 
 
-	//set mask for ball detection
-	H_MIN = 41;
-	H_MAX = 69;
-	S_MIN = 66;
-	S_MAX = 255;
-	V_MIN = 48;
-	V_MAX = 185;
+
+	//grab 1 frame to capture hsv ball values
+	capture.read(cameraFeed);
+	cvtColor(cameraFeed,HSV,COLOR_BGR2HSV);
+	inRange(HSV,Scalar(H_MIN,S_MIN,V_MIN),Scalar(H_MAX,S_MAX,V_MAX),threshold);
+	morphOps(threshold);
+	trackFilteredObject(b, threshold, cameraFeed);
+
+	imshow(windowName2, threshold);
+	imshow(windowName, cameraFeed);
+	
+	mouseParams_t mp;
+	mp._mat = cameraFeed;
+	mp._H_MIN = &H_MIN;
+	mp._H_MAX = &H_MAX;
+	mp._S_MIN = &S_MIN;
+	mp._S_MAX = &S_MAX;
+	mp._V_MIN = &V_MIN;
+	mp._V_MAX = &V_MAX;	
+	setMouseCallback( windowName, callBackFunc, (void*)&mp);
+	printHSV(mp);
+
 
 	usleep(1000000); //for debug
-	int print_counter = 0; //for debug
-	//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	int global_clock = 1; //global clock
+	double fps = 99;
+	time_t start, end;
+	time(&start);
+
+	printf("\n### All parameters setted, ready to go...\n\n");
+
+	//::: MAIN LOOP :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 	while(true){
+
 		//store image to matrix
 		capture.read(cameraFeed);
+		//fps = capture.get(CV_CAP_PROP_FPS);
+
 		//convert frame from BGR to HSV colorspace
 		cvtColor(cameraFeed,HSV,COLOR_BGR2HSV);
 		//filter HSV image between values and store filtered image to
@@ -122,35 +147,47 @@ int main(int argc, char* argv[]){
 		//pass in thresholded frame to our object tracking function
 		//this function will return the x and y coordinates of the
 		//filtered object
-		trackFilteredObject(x,y,threshold,cameraFeed);
+		trackFilteredObject(b, threshold, cameraFeed);
 
-		/*------------------------------- Write data to serial port -----------------------------*/
+		//show frames 
+		imshow(windowName2, threshold);
+		imshow(windowName, cameraFeed);
+		//imshow(windowName1,HSV);
+
+		/*------------------------------- Write data to serial port ----------------
 
 		encodeConfig(config, write_buffer);
 		printf("encode result: %s\n", write_buffer);
 
 		bytes_written = write(fd, write_buffer, sizeof(ServoConfig_t));
-		printf("# [%d] %s written to ttyACM0 \n", print_counter, write_buffer);
+		printf("# [%d] %s written to ttyACM0 \n", global_clock, write_buffer);
 		//printServoConfig(config);
-		printf("# [%d] %d Bytes written to ttyACM0\n\n", print_counter, bytes_written);
-		print_counter++;	//for debug
+		printf("# [%d] %d Bytes written to ttyACM0\n\n", global_clock, bytes_written);
 
-		/*--------------------------------------------------------------------------------------*/
+		--------------------------------------------------------------------------------------*/		
 
-		//show frames 
-		imshow(windowName2,threshold);
-		imshow(windowName,cameraFeed);
-		//imshow(windowName1,HSV);
+		//increase global clock counter
+		if (global_clock%5 == 0){
+			time(&end);
+			fps = global_clock/(difftime(end, start));
+			printf("\n*********************\n");
+			printf("# difftime: %f\n", (float)difftime(end, start));
+			printf("# FPS:	%.2f", fps);
+			printf("\n*********************\n");
+			time(&start);
+			global_clock = 0;
+		}
+
+		global_clock++;
+		printBall(b, global_clock);
 		
-		//delay 30ms so that screen can refresh.
+		//delay 100ms so that screen can refresh.
 		//image will not appear without this waitKey() command
-		if(waitKey(30) >= 0) break;
+		if(waitKey(100) >= 0) break;
 
-
-		config->ServoX++;
-		config->ServoY++;
 
 	}//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 
 
 //__EXIT ROUTINE __________________________
@@ -175,6 +212,7 @@ int main(int argc, char* argv[]){
 	//free fd and structures
 	printf("# Close file descriptor and free data structures... ");
 	close(fd);
+	free(b);
 	free(config);
 	free(write_buffer);
 

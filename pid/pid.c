@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "pid.h"
 
@@ -7,21 +8,22 @@
 //_ Function Declarations _____________________
 
 /* Setup() **********************************************************************/
-void setPid(PID_t* pid, float setpoint, float tollerance, float dt, 
-            float P, float I, float D, float kp, float kd, float ki, 
-            float pre_error, float error){
+void setPid(PID_t* pid, float setpoint, float tollerance, float sample, 
+            float P, float I, float D, float kp, float ki, float kd){
 
-    pid->setpoint = setpoint;
+    pid->setpoint[0] = setpoint;
     pid->tollerance = tollerance;
-    pid->dt = dt;
-    pid->P = P;
-    pid->I = I;
-    pid->D = D;
+    pid->sample = sample;
+    pid->P = 0.0;
+    pid->I = 0.0;
+    pid->D = 0.0;
     pid->kp = kp;
-    pid->kd = kd;
     pid->ki = ki;
-    pid->pre_error = pre_error;
-    pid->error = error;
+    pid->kd = kd;
+    pid->iState = 0.0;
+    pid->e[0] = 0.0;
+    pid->e[1] = 0.0;
+    
 
 }
 
@@ -31,62 +33,58 @@ void setPid(PID_t* pid, float setpoint, float tollerance, float dt,
  *   pid Output needs to be computed. Returns true when the output is computed,
  *   false when nothing has been done.
  **********************************************************************************/ 
-bool PIDCompute(PID_t* XPid, PID_t* YPid, Point_t* ball_position, ServoConfig_t* config) {
+bool PIDCompute(PID_t* pid, short ball_position, short* output) {
     
-    //set old err
-    XPid->pre_error = XPid->error;
-    YPid->pre_error = YPid->error;
+    // set old err e[1]
+    pid->e[1] = pid->e[0];
 
-    //calculate new errors
-    XPid->error = XPid->setpoint - ball_position->x;
-    YPid->error = YPid->setpoint - ball_position->y;
-
-    if (fabsf(XPid->error) < XPid->tollerance || fabsf(YPid->error) < YPid->tollerance){
-        return false;
-    }
+    // calculate new error e[0]
+    pid->e[0] = pid->setpoint[0] - ball_position;
 
     // if the ball is out of X target area: apply control law
-    if (fabsf(XPid->error) > XPid->tollerance){
-        //P term
-        XPid->P = XPid->kp * XPid->error;
-        if (XPid->P < P_MIN) XPid->P = P_MIN;
-        else if (XPid->P > P_MAX) XPid->P = P_MAX;
-        //I term
-        XPid->I = XPid->ki * XPid->error;
-        if (XPid->I < I_MIN) XPid->I = I_MIN;
-        else if (XPid->I > I_MAX) XPid->I = I_MAX;
-        //D term
-        XPid->D = XPid->kd * XPid->error;
-        if (XPid->D < D_MIN) XPid->D = D_MIN;
-        else if (XPid->D > D_MAX) XPid->D = D_MAX;
+    if (fabsf(pid->e[0]) > pid->tollerance ){
+     
+    //__Proportional term_____________________________________
+        pid->P = pid->kp * pid->e[0];
+        if (pid->P < P_MIN) pid->P = P_MIN;
+        else if (pid->P > P_MAX) pid->P = P_MAX;
 
+    //__Integral term_________________________________________
+        //calculate the integrator state
+        pid->iState += pid->e[0];
 
+        //integral anti-windup
+        if (pid->iState < I_MIN) pid->iState = I_MIN;
+        else if (pid->iState > I_MAX) pid->iState = I_MAX;
 
-        config->ServoX = (uint8_t)(XPid->P + XPid->I + XPid->D);
-        
+        //calculate the integral term
+        pid->I = pid->ki * pid->iState;
+
+    //__Terms Sum_____________________________________________
+        *output = (short)(pid->P + pid->I);
+        return true;
     }
 
-    // if the ball is out of Y target area: apply control law
-    if(fabsf(YPid->error) > YPid->tollerance){
-        //P term
-        YPid->P = YPid->kp * YPid->error;
-        if (YPid->P < P_MIN) YPid->P = P_MIN;
-        else if (YPid->P > P_MAX) YPid->P = P_MAX;
-        //I term
-        YPid->I = YPid->ki * YPid->error;
-        if (YPid->I < I_MIN) YPid->I = I_MIN;
-        else if (YPid->I > I_MAX) YPid->I = I_MAX;
-        //D term
-        YPid->D = YPid->kd * YPid->error;
-        if (YPid->D < D_MIN) YPid->D = D_MIN;
-        else if (YPid->D > D_MAX) YPid->D = D_MAX;
-
-
-    }
-
-
-
-    return true;
+    else return false;
 }
 
 
+
+void printPidState(PID_t* pid){
+    printf("\n     ========================\n");
+    printf("    ||	sp[0]:  %f    \n", pid->setpoint[0]);
+	printf("    ||	P:      %f    \n", pid->P);
+	printf("    ||	I:      %f    \n", pid->I);
+	printf("    ||	iState: %f    \n", pid->iState);
+	printf("    ||	e[0]:   %f    \n", pid->e[0]);
+    printf("    ||	e[1]:   %f    \n", pid->e[1]);
+	printf("     ========================\n");
+
+}
+
+void updateSetpoint(PID_t* pid, float sp){
+    //save old setpoint
+    pid->setpoint[1] = pid->setpoint[0];
+    //set current setpoin
+    pid->setpoint[0] = sp;
+}

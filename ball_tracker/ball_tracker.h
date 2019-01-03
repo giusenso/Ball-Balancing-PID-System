@@ -2,11 +2,10 @@
 #define BALL_TRACKER_H
 
 #include <opencv2/opencv.hpp>
-#include <string.h>
+#include <opencv2/highgui.hpp>
 #include "../utils.h"
 
 using namespace cv;
-
 
 //max number of objects to be detected in frame
 #define     MAX_NUM_OBJECTS     16
@@ -39,15 +38,29 @@ extern const String windowName3;
 extern const String trackbarWindowName;
 
 
+typedef struct mouseParams{
+	Mat _mat;
+	int* _H_MIN;
+	int* _H_MAX;
+	int* _S_MIN;
+	int* _S_MAX;
+	int* _V_MIN;
+	int* _V_MAX;
+}mouseParams_t;
 //_ Function Signature _________________________
 
 void on_trackbar( int, void* );
 String intToString(int number);
 void createTrackbars();
 void drawObjectV1(int x, int y, Mat &frame);
-void drawObjectV2(int x, int y, Mat &frame);
+void drawObjectV2(Ball* b, Mat &frame);
 void morphOps(Mat &thresh);
-void trackFilteredObject(int &x, int &y, Mat threshold, Mat &cameraFeed);
+void trackFilteredObject(Ball* b, Mat threshold, Mat &cameraFeed);
+void callBackFunc(int event, int x, int y, int flags, void* param);
+void printHSV(mouseParams mp);
 
+Ball* createBall(short _x, short _y);
+void printBall(Ball* b, short global_clock);
+inline bool updateBall(Ball* b, short _x, short _y);
 
 #endif
