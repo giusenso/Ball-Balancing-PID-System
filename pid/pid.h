@@ -6,11 +6,13 @@
 
 //_ Data ____________________________
 
+//not used yet
 typedef enum{
   PID_Mode_Automatic = 1,
   PID_Mode_Manual    = 0
 } PidModeType;
 
+//not used yet
 typedef enum{
   PID_Direction_Direct  = 0,
   PID_Direction_Reverse = 1
@@ -18,33 +20,32 @@ typedef enum{
 
 
 typedef struct PID{
-    float setpoint[2];
+    float setpoint;
     float tollerance;   //in pixels
-    float sample;
+    float dt;
     float P, I, D;
     float kp, ki, kd;
-    float iState;
-    float e[2]; //e[0] actual error, e[1] past error
+    float error;
+    float pre_error;
 }PID_t;
 
-#define   P_MAX   400
-#define   P_MIN   -400
-#define   I_MIN   -1000
-#define   I_MAX   1000
-#define   D_MIN   -500
-#define   D_MAX   500
+#define   P_MAX   600
+#define   P_MIN   -600
+#define   I_MIN   -150
+#define   I_MAX   150
+#define   D_MIN   -50 //not used
+#define   D_MAX   50 //not used
 
 //_ Function Signature _________________________
 
-void printPidState(PID_t* pid);
-
-void setPid(PID_t* pid, float setpoint, float tollerance, float sample, 
-            float P, float I, float D, float kp, float ki, float kd);
-
-
-bool PIDCompute(PID_t* pid, short ball_position, short* ServoX);
+void setPid(PID_t* pid, float setpoint, float tollerance, float dt, 
+            float P, float I, float D, float kp, float kd, float ki, 
+            float pre_error, float error);
 
 
-void updateSetpoint(PID_t* pid, float sp);
+float PIDCompute(PID_t* pid, int ball_position);
+
+void printPID(PID_t* pid);
+
 
 #endif
