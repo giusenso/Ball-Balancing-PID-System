@@ -1,5 +1,6 @@
 
 #include "ball_tracker.h"
+#include "ball_physic.h"
 
 const char* path = "/home/jius/Desktop/ball-tracking-platform/ball_tracker/samples/test3.mp4";
 
@@ -41,7 +42,7 @@ int main(int argc, char** argv){
 
     //prepare box
     //box = threshold(buildBox(b));
-    
+
     trackFilteredObject(b, threshold, src);
 
     imshow( "img", src );
@@ -51,8 +52,8 @@ int main(int argc, char** argv){
     printBall(b, 0);
 
     if(waitKey(30) >= 0) break;
-  }
 
+  }
 
   return 0;
 }

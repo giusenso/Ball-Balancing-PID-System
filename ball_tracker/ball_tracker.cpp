@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
 #include "ball_tracker.h"
+#include "ball_physic.h"
 
 int H_MIN = 0;
 int H_MAX = 256;
@@ -50,17 +50,15 @@ void createTrackbars(){
 	sprintf( TrackbarName, "V_MAX");
 	//create trackbars and insert them into window
 	//3 parameters are: the address of the variable that is changing when the trackbar is moved(eg.H_LOW),
-	//the max value the trackbar can move (eg. H_HIGH), 
+	//the max value the trackbar can move (eg. H_HIGH),
 	//and the function that is called whenever the trackbar is moved(eg. on_trackbar)
-	//                                  ---->    ---->     ---->      
+	//                                  ---->    ---->     ---->
     createTrackbar( "H_MIN", trackbarWindowName, &H_MIN, H_MAX, on_trackbar );
     createTrackbar( "H_MAX", trackbarWindowName, &H_MAX, H_MAX, on_trackbar );
     createTrackbar( "S_MIN", trackbarWindowName, &S_MIN, S_MAX, on_trackbar );
     createTrackbar( "S_MAX", trackbarWindowName, &S_MAX, S_MAX, on_trackbar );
     createTrackbar( "V_MIN", trackbarWindowName, &V_MIN, V_MAX, on_trackbar );
     createTrackbar( "V_MAX", trackbarWindowName, &V_MAX, V_MAX, on_trackbar );
-
-
 }
 
 void drawObjectV1(int x, int y, Mat &frame){
@@ -110,19 +108,19 @@ void drawObjectV2(Ball* b, Mat &frame){
 	line(frame, Point(0, b->y[0]), Point(FRAME_WIDTH, b->y[0]), BLUE, 1);
 
 
-	//draw velocity arrow 
+	//draw velocity arrow
 	if (b->v > 2.0){
 		arrowedLine(frame, Point(b->x[0], b->y[0]), Point(b->fx, b->fy) , RED, 2, 8, 0 , 0.4);
 	}
-	//draw previous positions	
+	//draw previous positions
 	for (int i=1 ; i<6 ; i++){
 		circle( frame, Point(b->x[i], b->y[i]), 2, ORANGE, -1, 8, 0 );
 	}
 
 	//draw square area
-	rectangle(	frame, 
+	rectangle(	frame,
 				Point(SETPOINT_X-225, SETPOINT_Y-225),
-				Point(SETPOINT_X+225, SETPOINT_Y+225), 
+				Point(SETPOINT_X+225, SETPOINT_Y+225),
 				ORANGE, 3, LINE_8, 0);
 
 	//display ball info
@@ -143,14 +141,14 @@ void morphOps(Mat &thresh){
     //dilate with larger element so make sure object is nicely visible
 	Mat dilateElement = getStructuringElement( MORPH_RECT,Size(5,5));
 
-	//Mat 
+	//Mat
 
 	erode(thresh,thresh,erodeElement);
 	erode(thresh,thresh,erodeElement);
 
 	dilate(thresh,thresh,dilateElement);
 	dilate(thresh,thresh,dilateElement);
-	
+
 	morphologyEx(thresh, thresh, MORPH_CLOSE, Mat::ones(5, 5, CV_8U));
 
 	//release
@@ -165,7 +163,7 @@ void trackFilteredObject(Ball* b, Mat threshold, Mat &cameraFeed){
 	threshold.copyTo(temp);
 	//temp =threshold(buildBox(b));
 
-	
+
 	//these two vectors needed for output of findContours
 	std::vector< std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;
@@ -202,7 +200,7 @@ void trackFilteredObject(Ball* b, Mat threshold, Mat &cameraFeed){
 			if(objectFound ==true){
 				drawObjectV2( b , cameraFeed );
 			}
-			
+
 		}else putText(cameraFeed,"TOO MUCH NOISE! ADJUST FILTER",Point(100,32),1,2,RED,2);
 	}
 	//release memory
@@ -218,10 +216,10 @@ void circleDetector(Mat cameraFeed, Mat threshold){
 
 	std::vector<Vec3f> circles;
 	HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 1, 35, 100, 25, 10, 45);
-	
+
 	for(size_t i = 0 ; i < circles.size() ; i++){
-		printf("%d    radius: %.1f \n", i+1, circles[i][2]);
-		
+		printf("%d    radius: %.1f \n", (int)i+1, circles[i][2]);
+
 		Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
 		short radius = cvRound(circles[i][2]);
 
@@ -231,9 +229,8 @@ void circleDetector(Mat cameraFeed, Mat threshold){
 	gray.release();
 }
 
-
 //create square box and find for ball only here
-void createSquareBox(Ball* b, Mat cameraFeed, Mat threshold){			
+void createSquareBox(Ball* b, Mat cameraFeed, Mat threshold){
 	//delete from threshol all out of box point
 	//box is centered in (fx, fy)
 
@@ -287,54 +284,3 @@ void printHSV(mouseParams mp){
 	printf(" ||	  MAX = %d	||\n", *mp._V_MAX);
 	printf("  =======================\n");
 }
-
-
-
-/*************************************************************************************
- *------- Ball physics modelling and computation functions --------------------------*
- *************************************************************************************/
-
-/*allocate and initialize a Ball instance*/
-Ball* createBall(short _x, short _y){
-    Ball* b = (Ball*)malloc(sizeof(Ball));
-    b->x[0] = b->x[1] = b->x[2] = b->x[3] = b->x[4] = b->x[5] = _x;
-    b->y[0] = b->y[1] = b->y[2] = b->y[3] = b->y[4] = b->y[5] = _y;
-	b->dx = 0;
-	b->dy = 0;
-	b->fx = _x;
-	b->fy = _y;
-    b->v = 0;
-	b->phi = 0;
-	return b;
-}
-
-/*print Ball instance function for debugging*/
-void printBall(Ball* b, short global_clock){
-	printf("\n  ===== Ball (%d) ================================= \n", global_clock);
-	printf(" ||	x:	[ %d , %d , %d , %d , %d , %d ]	\n", 
-		b->x[0],b->x[1],b->x[2],b->x[3],b->x[4],b->x[5]);
-	printf(" ||	y:	[ %d , %d , %d , %d , %d , %d ]	\n", 
-		b->y[0],b->y[1],b->y[2],b->y[3],b->y[4],b->y[5]);
-	printf(" ||	dx:	  %d	   		\n", b->dx);
-	printf(" ||	dy:	  %d   			\n", b->dy);
-	printf(" ||	fx:	  %d	   		\n", b->fx);
-	printf(" ||	fy:	  %d   			\n", b->fy);
-	printf(" ||	v:	  %.1f		   			\n", b->v);
-	printf(" ||	phy:	  %.1f  				\n", b->phi);
-	printf("  ================================================= \n");
-}
-
-/*update position and compute new velocity and direction
-	{this function is called in trackFilteredObject()}	*/
-bool updateBall(Ball* b, short _x, short _y){
-	
-	updatePos(b, _x, _y);
-	updateSpeed(b);
-	updatePhase(b);
-	updatePredictedPos(b);
-	
-	if (b->dx==0 && b->dy==0) return false;
-	else return true;
-	
-}
-

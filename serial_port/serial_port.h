@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #define     BAUD_RATE   9600
+
 #define     ttyACM0     "/dev/ttyACM0"
 #define     ttyACM1     "/dev/ttyACM1"
 #define     ttyACM2		"/dev/ttyACM2"
@@ -18,7 +19,6 @@
 
 
 extern const char* serialPorts[5];
-
 
 //___funcion signature_________________________________
 int openSerialCommunication(int* fd);

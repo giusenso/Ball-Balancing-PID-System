@@ -23,9 +23,10 @@ inline void updatePosVec(Ball* b, uint16_t _x, uint16_t _y){
     STORE((VEC*)(v), b->x);
     b->x[0] = _x;
 
-    v = LOAD((const VEC*)((b->y)1));
+    v = LOAD((const VEC*)((b->y)-1));
     STORE((VEC*)(v), b->y);
     b->y[0] = _y;
+
 }
 
 inline void updatePos(Ball* b, uint16_t _x, uint16_t _y){
@@ -47,12 +48,12 @@ inline void updatePos(Ball* b, uint16_t _x, uint16_t _y){
 	b->y[1] = b->y[0];
 	b->y[0] = _y;
 
-	b->dx = b->x[0] - b->x[1];
-	b->dy = b->y[0] - b->y[1];
 }
 
 
 inline void updateSpeed(Ball* b){
+	b->dx = b->x[0] - b->x[1];	// x component
+	b->dy = b->y[0] - b->y[1];	// y component
 	b->v = fabsf(sqrt( pow(b->dx,2) + pow(b->dy,2) ));
 }
 

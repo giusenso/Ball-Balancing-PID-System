@@ -4,6 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui.hpp>
 #include "../utils.h"
+#include "ball.h"
 
 using namespace cv;
 
@@ -62,58 +63,21 @@ void createSquareBox(Mat cameraFeed, Mat threshold);
 void callBackFunc(int event, int x, int y, int flags, void* param);
 void printHSV(mouseParams mp);
 
-Ball* createBall(short _x, short _y);
-void printBall(Ball* b, short global_clock);
-bool updateBall(Ball* b, short _x, short _y);
-
-
-
-inline void updatePos(Ball* b, short _x, short _y){
-	b->x[5] = b->x[4];
-	b->x[4] = b->x[3];
-	b->x[3] = b->x[2];
-	b->x[2] = b->x[1];
-	b->x[1] = b->x[0];
-	b->x[0] = _x;
-	
-	b->y[5] = b->y[4];
-	b->y[4] = b->y[3];
-	b->y[3] = b->y[2];
-	b->y[2] = b->y[1];
-	b->y[1] = b->y[0];
-	b->y[0] = _y;
-	
-	b->dx = b->x[0] - b->x[1];
-	b->dy = b->y[0] - b->y[1];	
-}
-
-inline void updateSpeed(Ball* b){
-	b->v = fabsf(sqrt( pow(b->dx,2) + pow(b->dy,2) ));
-}
-
-inline void updatePhase(Ball* b){
-	if(b->dx >= 1 || b->dx <= -1) b->phi = radiansToDegree(atan2(b->dy, b->dx));
-}
-
-inline void updatePredictedPos(Ball* b){
-	b->fx = b->dx + b->x[0];
-	b->fy = b->dy + b->y[0];
-}
 
 inline Rect buildBox(Ball* b){
 
     //prepare top left corner of the box
 	short tl_x = b->x[0] - BOX_SIZE/2;
-    if (tl_x >= FRAME_WIDTH-BOX_SIZE) tl_x = 
+    if (tl_x >= FRAME_WIDTH-BOX_SIZE) tl_x =
         FRAME_WIDTH-BOX_SIZE;
     if(tl_x <=0) tl_x = 0;
 
 	short tl_y = b->y[0] - BOX_SIZE/2;
-    if (tl_y >= FRAME_HEIGHT-BOX_SIZE) tl_y = 
+    if (tl_y >= FRAME_HEIGHT-BOX_SIZE) tl_y =
         FRAME_HEIGHT-BOX_SIZE;
     if(tl_y <=0) tl_y = 0;
 
-    printf("\nBOX\ntx %d\nty %d\nbx %d\nby %d\n", 
+    printf("\nBOX\ntx %d\nty %d\nbx %d\nby %d\n",
       tl_x, tl_y, tl_x+BOX_SIZE, tl_y+BOX_SIZE);
     return Rect(tl_x, tl_y, tl_x+BOX_SIZE, tl_y+BOX_SIZE);
 }
