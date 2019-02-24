@@ -5,13 +5,28 @@
 
 #include <stdint.h>
 
-#define     BAUD_RATE   9600
+#define BAUD_RATE 9600
+#define MYUBRR (F_CPU/16/BAUD_RATE-1)
 
 #define     ttyACM0     "/dev/ttyACM0"
 #define     ttyACM1     "/dev/ttyACM1"
 #define     ttyACM2		"/dev/ttyACM2"
 #define     ttyACM3		"/dev/ttyACM3"
 #define     ttyACM4		"/dev/ttyACM4"
+
+/*********************************************/
+/*      SERVOS                               */             
+/*********************************************/
+#define   PERIOD          1/F_CPU
+#define   DEAD_BAND       3   *0.000001
+#define   HALF_DEGREE     3.5 *0.000001 
+
+#define   MIN_STEP        HALF_DEGREE/PERIOD   //56
+#define   HALF_ANGLE = 23200;
+#define	  MAX_ANGLE = HALF_ANGLE+6000;
+#define   MIN_ANGLE	= HALF_ANGLE-6000;
+/*********************************************/
+
 
 #define     bool        int
 #define     false       0

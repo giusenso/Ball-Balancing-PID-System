@@ -23,27 +23,36 @@ int main(){
 
 	setSerialAttributes(fd);
 
+	int CENTER = 23200;
+	int	MAX = CENTER+6000;
+	int MIN	= CENTER-6000;
+	
 	//Initialize data structure________________
 	ServoConfig_t config = { 
-		.servoX = 0x6162,
-		.servoY = 0x6364
+		.servoX = MIN,
+		.servoY = MAX
 	};
 
 	uint8_t buf[6] = { 0,0,0,0,0,0 };
 
 	printf("\nLook at cutecom, now!\n");
-	usleep(2000000); // wait 2 seconds
-	
+	usleep(1500000); // wait 2 seconds
+
+	int count = 0;
 	while(1){
+		
 		printServoConfig(&config);
 		encodeConfig(&config, buf);
 		printEncodedPack(buf);
-		strcat(buf,"\0");
 
-		bytes_written = write(fd,(void*)buf, 6);
-		printf("\n# %d Bytes written to /dev/ttyACM device\n\n", bytes_written);
+		printf("\nPULSE: %d", config.servoX);
+		bytes_written = write(fd,(void*)buf, sizeof(buf));
+		printf("\ncount:%d | #%d Bytes written to /dev/ttyACM \n ==============================================\n", count, bytes_written);
 
-		usleep(4000000);
+		count++;
+		//config.servoX = MAX;
+		//config.servoY = MIN;
+		usleep(2300000);
 	}
 	
     return 0;
