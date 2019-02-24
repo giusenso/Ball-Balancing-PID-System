@@ -8,8 +8,8 @@
 //_ Function Declarations _____________________
 
 /* Setup() **********************************************************************/
-void setPid(PID_t* pid, float setpoint, float tollerance, float dt, 
-            float P, float I, float D, float kp, float kd, float ki, 
+void setPid(PID_t* pid, float setpoint, float tollerance, float dt,
+            float P, float I, float D, float kp, float kd, float ki,
             float pre_error, float error){
 
     pid->setpoint = setpoint;
@@ -31,10 +31,10 @@ void setPid(PID_t* pid, float setpoint, float tollerance, float dt,
  *   the function will decide for itself whether a new
  *   pid Output needs to be computed. Returns true when the output is computed,
  *   false when nothing has been done.
- **********************************************************************************/ 
+ **********************************************************************************/
 //  (pid, ball) ==> P+I+D
-float PIDCompute(PID_t* pid, int ball_position) {
-    
+float PIDCompute(PID_t* pid, uint16_t ball_position) {
+
     //set old err
     pid->pre_error = pid->error;
 
@@ -44,7 +44,7 @@ float PIDCompute(PID_t* pid, int ball_position) {
     //if we don't need to compute
     if (fabsf(pid->error) < pid->tollerance){
         pid->P = 0;
-        pid->I = 0; 
+        pid->I = 0;
         pid->D = 0;
     }
 
@@ -66,7 +66,7 @@ float PIDCompute(PID_t* pid, int ball_position) {
         pid->D = pid->kd * pid->error;
         if (pid->D < D_MIN) pid->D = D_MIN;
         else if (pid->D > D_MAX) pid->D = D_MAX;
-        */ 
+        */
     }
 
     return pid->P + pid->I + pid->D;
@@ -85,6 +85,6 @@ void printPID(PID_t* pid){
             \n    P    = %lf\
             \n    I    = %lf\
             \n    D    = %lf\n",
-            pid->error, pid->pre_error, 
+            pid->error, pid->pre_error,
             pid->P, pid->I, pid->D);
 }

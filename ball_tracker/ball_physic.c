@@ -46,6 +46,6 @@ bool updateBall(Ball* b, uint16_t _x, uint16_t _y){
 	updatePhase(b);
 	updatePredictedPos(b);
 
-	if (b->dx==0 && b->dy==0) return false;
+	if (b->v==0) return false;
 	else return true;
 }

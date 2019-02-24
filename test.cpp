@@ -11,11 +11,13 @@
 #include <stdlib.h>
 #include <time.h>
 #include <fcntl.h>   /* File Control Definitions           */
-#include <unistd.h>  /* UNIX Standard Definitions 	   */ 
+#include <unistd.h>  /* UNIX Standard Definitions 	   */
 #include <errno.h>   /* ERROR Number Definitions           */
 
 #include "serial_port/serial_port.h"
+#include "ball_tracker/ball.h"
 #include "ball_tracker/ball_tracker.h"
+#include "ball_tracker/ball_physic.h"
 #include "pid/pid.h"
 
 using namespace cv;
@@ -48,8 +50,8 @@ int main(int argc, char* argv[]){
 
 	//enable this to capture mp4 file
 	//capture.open("/home/jius/Desktop/ball-tracking-platform/ball_tracker/samples/test3.mp4");
-	
-	
+
+
 	int CAM_NUMBER = 0;
 	for ( ; CAM_NUMBER<3 ; CAM_NUMBER++){
 		capture.open(CAM_NUMBER);
@@ -62,12 +64,12 @@ int main(int argc, char* argv[]){
 		perror("\nERROR: NO dev/video* DEVICE CONNECTED\n");
 		return -1;
 	}
-	
+
 
 	//set height and width of capture frame
 	capture.set(CV_CAP_PROP_FRAME_WIDTH,FRAME_WIDTH);
 	capture.set(CV_CAP_PROP_FRAME_HEIGHT,FRAME_HEIGHT);
-	
+
 
 	//initialize serial communication______________
 	int fd = -1;
@@ -94,7 +96,7 @@ int main(int argc, char* argv[]){
 		config->ServoY =	 0xFF;
 		config->flag1  =	 0xFF;
 		config->flag2  =	 0xF0;
-	
+
 	printServoConfig(config);
 
 
@@ -108,7 +110,7 @@ int main(int argc, char* argv[]){
 
 	imshow(windowName2, threshold);
 	imshow(windowName, cameraFeed);
-	
+
 	mouseParams_t mp;
 	mp._mat = cameraFeed;
 	mp._H_MIN = &H_MIN;
@@ -116,7 +118,7 @@ int main(int argc, char* argv[]){
 	mp._S_MIN = &S_MIN;
 	mp._S_MAX = &S_MAX;
 	mp._V_MIN = &V_MIN;
-	mp._V_MAX = &V_MAX;	
+	mp._V_MAX = &V_MAX;
 	setMouseCallback( windowName, callBackFunc, (void*)&mp);
 	printHSV(mp);
 
@@ -149,7 +151,7 @@ int main(int argc, char* argv[]){
 		//filtered object
 		trackFilteredObject(b, threshold, cameraFeed);
 
-		//show frames 
+		//show frames
 		imshow(windowName2, threshold);
 		imshow(windowName, cameraFeed);
 		//imshow(windowName1,HSV);
@@ -164,7 +166,7 @@ int main(int argc, char* argv[]){
 		//printServoConfig(config);
 		printf("# [%d] %d Bytes written to ttyACM0\n\n", global_clock, bytes_written);
 
-		--------------------------------------------------------------------------------------*/		
+		--------------------------------------------------------------------------------------*/
 
 		//increase global clock counter
 		if (global_clock%5 == 0){
@@ -180,7 +182,7 @@ int main(int argc, char* argv[]){
 
 		global_clock++;
 		printBall(b, global_clock);
-		
+
 		//delay 100ms so that screen can refresh.
 		//image will not appear without this waitKey() command
 		if(waitKey(100) >= 0) break;

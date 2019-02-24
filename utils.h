@@ -6,28 +6,20 @@
 
 //_ Data Structure _______________________
 
+typedef struct Point_t{
+    uint16_t    x;
+    uint16_t    y;
+} Point_t;
 
 typedef struct ServoConfig {
-    uint8_t     ServoX;
-    uint8_t     ServoY;
-    uint8_t     flag1;
-    uint8_t     flag2;
+    uint16_t     servoX;
+    uint16_t     servoY;
 } ServoConfig_t;
-
-
-typedef struct Ball {
-    short x[6]; //store up to 2^5 frame ago
-    short y[6];
-    float v;    //velocity
-    float phi;  //direction
-} Ball;
-
-
 
 
 //_ Global Variables _______________________
 
-#define     PI                  3.1415            
+#define     PI                  3.1415
 #define     FRAME_WIDTH         640
 #define     FRAME_HEIGHT        480
 #define     TOLLERANCE          30
