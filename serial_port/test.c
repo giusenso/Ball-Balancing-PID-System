@@ -24,31 +24,27 @@ int main(){
 	setSerialAttributes(fd);
 
 	//Initialize data structure________________
-	ServoConfig_t* config = (ServoConfig_t*) malloc(sizeof(ServoConfig_t));
-	config->servoX = 0x6622;
-	config->servoY = 0x3344;
+	ServoConfig_t config = { 
+		.servoX = 0x6162,
+		.servoY = 0x6364
+	};
 
-	uint8_t* buf = (uint8_t*)malloc(sizeof(ServoConfig_t));
+	uint8_t buf[6] = { 0,0,0,0,0,0 };
 
 	printf("\nLook at cutecom, now!\n");
 	usleep(2000000); // wait 2 seconds
 	
 	while(1){
-
-		encodeConfig(config, buf);
-		printf("\nSending pack...");
+		printServoConfig(&config);
+		encodeConfig(&config, buf);
 		printEncodedPack(buf);
+		strcat(buf,"\0");
 
-		bytes_written = write(fd, buf, 32);
-		printf("\ndone. %d Bytes written to /dev/ttyACM device\n\n", bytes_written);
+		bytes_written = write(fd,(void*)buf, 6);
+		printf("\n# %d Bytes written to /dev/ttyACM device\n\n", bytes_written);
 
-		usleep(2000000);
+		usleep(4000000);
 	}
-
-	//exit routine__________________
-	free(config);
-	free(buf);
-	printf("\nData structures deallocated... exit.\n");
 	
     return 0;
 

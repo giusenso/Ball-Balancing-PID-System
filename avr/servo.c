@@ -1,7 +1,5 @@
 #include <util/delay.h>
 #include <avr/io.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
 #include "../utils.h"
 
@@ -45,6 +43,8 @@ uint8_t UART_getChar(void){
   return UDR0;
 }
 
+
+
 //----------------------------------------------------------
 // reads a string until the first newline or 0
 // returns the size read
@@ -74,13 +74,18 @@ void UART_putString(uint8_t* buf){
   }
 }
 //---------------------------------------------------------
-
-//_uint8_t* ===> SERVOCONFIG_T*
-inline void decodeConfig(uint8_t* buf, ServoConfig_t* config){
-	config->servoX = (buf[0]<<8)|(buf[1]);
-	config->servoY = (buf[2]<<8)|(buf[3]);
+inline void encodeConfig(ServoConfig_t* config, uint8_t* buf){
+	buf[0] = (config->servoX) >> 8;		//high bits
+	buf[1] = (config->servoX) & 0xFF;	//low bits
+	buf[2] = (config->servoY) >> 8;		//high bits
+	buf[3] = (config->servoY) & 0xFF;	//low bits
 }
 
+inline void decodeConfig(uint8_t* buf, ServoConfig_t* config){
+	config->servoX = ((uint16_t*)buf)[0];
+	config->servoY = ((uint16_t*)buf)[2];
+}
+//************************
 void PWMSetup(void){
 	DDRB |= 0xFF; //PWM Pins as Out
 
@@ -98,28 +103,25 @@ int main(void){
   UART_putString((uint8_t*)"write something, i'll repeat it\n");
   PWMSetup();
   
-  uint8_t buf[4] = {0,0,0,0};
-  ServoConfig_t* config = (ServoConfig_t*)malloc(sizeof(ServoConfig_t));
-  config->servoX = 20000;
-  config->servoY = 30000;
-  while(1) {
+	//Initialize data structure________________
+	ServoConfig_t config = { 
+		.servoX = 0x6B6B,
+		.servoY = 0x6B6B
+	};
 
-    UART_getString(buf); _delay_ms(10);
-
-    //decodeConfig(buf, config);
-    UART_putString((uint8_t*)"received: ");
+  uint8_t buf[6] = {0,0,0,0,0,0,0};
   
-    OCR1A = config->servoX;
-    UART_putString((uint8_t*)"A\n");
-		_delay_ms(2000);
+  while(1) {//_______________
 
-    OCR1A = 30000;
-    UART_putString((uint8_t*)"C\n");
-		_delay_ms(2000);
+    UART_getString(buf);
+    decodeConfig(buf, &config);
+    
+    UART_putString((uint8_t*)"received\n");
+    OCR1A = 3000;
+    _delay_ms(1000);
+    OCR1A = 20000;
+    _delay_ms(1000);
 
-    UART_putString(buf);
-    UART_putString((uint8_t*)"\n");
   }
 
-  free(config);
 }

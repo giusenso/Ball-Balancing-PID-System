@@ -76,16 +76,17 @@ void setSerialAttributes(int fd){
 
 //_________SERVOCONFIG_T* ===> UINT8_T*	[run on pc]
 inline void encodeConfig(ServoConfig_t* config, uint8_t* buf){
-	buf[0] = (config->servoX) >> 8;
-	buf[1] = (config->servoX) & 0xFF;
-	buf[2] = (config->servoY) >> 8;
-	buf[3] = (config->servoY) & 0xFF;
+	buf[0] = (config->servoX) >> 8;		//high bits
+	buf[1] = (config->servoX) & 0xFF;	//low bits
+	buf[2] = (config->servoY) >> 8;		//high bits
+	buf[3] = (config->servoY) & 0xFF;	//low bits
+	strcat(buf,"\n");
 }
 
 //_________UINT8_T* ===> SERVOCONFIG_T*	[run on avr]
 inline void decodeConfig(uint8_t* buf, ServoConfig_t* config){
-	config->servoX = (buf[0]<<8)|(buf[1]);
-	config->servoY = (buf[2]<<8)|(buf[3]);
+	config->servoX = ((uint16_t*)buf)[0];
+	config->servoY = ((uint16_t*)buf)[2];
 }
 
 void printServoConfig(ServoConfig_t* config){
@@ -96,10 +97,10 @@ void printServoConfig(ServoConfig_t* config){
 }
 
 void printEncodedPack(uint8_t* buf){
-	printf("\n	 ==============================\n	|");
+	printf("\n	 ===============================\n	|");
 	printf(" 0x%02X  |", buf[0]);
 	printf(" 0x%02X  |", buf[1]);
 	printf(" 0x%02X  |", buf[2]);
 	printf(" 0x%02X  |", buf[3]);
-	printf("\n	 ==============================\n");
+	printf("\n	 ===============================\n");
 }
