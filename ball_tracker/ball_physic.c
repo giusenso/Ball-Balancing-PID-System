@@ -1,15 +1,14 @@
-#include <stdio.h>
-#include <math.h>
-
-#include "ball_physic.h"
-
 /*************************************************************************************
  *------- Ball physics modelling and computation functions --------------------------*
  *************************************************************************************/
 
+#include <stdio.h>
+#include <math.h>
+#include "ball_physic.h"
+
 /*allocate and initialize a Ball instance*/
 Ball* createBall(uint16_t _x, uint16_t _y){
-    Ball* b = (Ball*)malloc(sizeof(Ball));
+    Ball* b;
     b->x[0] = b->x[1] = b->x[2] = b->x[3] = b->x[4] = b->x[5] = b->x[6] = b->x[7] = _x;
     b->y[0] = b->y[1] = b->y[2] = b->y[3] = b->y[4] = b->y[5] = b->y[6] = b->y[7] = _y;
 	b->dx = 0;

@@ -1,3 +1,11 @@
+
+/********************************************
+*	@Author: Giuseppe Sensolini Arra'		*
+*											*
+*		COMPUTER VISION MODULE				*
+*											*
+*********************************************/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include "opencv2/highgui/highgui.hpp"

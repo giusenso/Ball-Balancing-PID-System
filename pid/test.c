@@ -6,8 +6,8 @@
 int main(){
 
     printf("\n# creating PID structs... ");
-    PID_t* XPid = (PID_t*)malloc(sizeof(PID_t));
-    PID_t* YPid = (PID_t*)malloc(sizeof(PID_t));
+    PID_t* XPid;
+    PID_t* YPid;
     printf("Done.\n");
 
 //_ X PID SETUP __________________________________

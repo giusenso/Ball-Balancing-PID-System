@@ -86,20 +86,16 @@ int main(int argc, char* argv[]){
 	//_____________________________________________
 
 	//initialize write_buffer_______________________
-	uint8_t* write_buffer = (uint8_t*)malloc(sizeof(ServoConfig_t));	//devo allocare di piu'?
+	uint8_t write_buffer[6];
 	int bytes_written = 0;
 	printf("# write_buffer allocated\n");
 
 	//Initialize data structure________________
-	ServoConfig_t* config = (ServoConfig_t*) malloc(sizeof(ServoConfig_t));
-		config->ServoX =	 0xFF;
-		config->ServoY =	 0xFF;
-		config->flag1  =	 0xFF;
-		config->flag2  =	 0xF0;
+	ServoConfig_t* config;
+	config->servoX = 0xFFFF;
+	config->servoY = 0xFFFF;
 
 	printServoConfig(config);
-
-
 
 	//grab 1 frame to capture hsv ball values
 	capture.read(cameraFeed);
@@ -157,6 +153,7 @@ int main(int argc, char* argv[]){
 		//imshow(windowName1,HSV);
 
 		/*------------------------------- Write data to serial port ----------------
+		//Update: for this use my function in serial_port.c
 
 		encodeConfig(config, write_buffer);
 		printf("encode result: %s\n", write_buffer);
@@ -193,7 +190,7 @@ int main(int argc, char* argv[]){
 
 
 //__EXIT ROUTINE __________________________
-	printf("_____ EXIT ROUTINE _________ \n\n");
+	printf("_______ EXIT ROUTINE _________ \n\n");
 
 	//destroy all windows
 	printf("# Destroy all windows... ");
@@ -214,9 +211,8 @@ int main(int argc, char* argv[]){
 	//free fd and structures
 	printf("# Close file descriptor and free data structures... ");
 	close(fd);
-	free(b);
-	free(config);
-	free(write_buffer);
+	//free(b);
+	//free(write_buffer);
 
 	printf("Done.\n____________________________\n\n");
 

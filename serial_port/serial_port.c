@@ -1,14 +1,15 @@
 
-	/*====================================================================================================*/
-	/* Sellecting the Serial port Number on Linux                                                         */
-	/* ---------------------------------------------------------------------------------------------------*/
-	/* /dev/ttyACM0 is the default serial        														  */
-    /*====================================================================================================*/
-
-	/*-------------------------------------------------------------*/
-    	/* termios structure -  /usr/include/asm-generic/termbits.h    */
-	/* use "man termios" to get more info about  termios structure */
-	/*-------------------------------------------------------------*/
+/********************************************
+*	@Author: Giuseppe Sensolini Arra'		*
+*											*
+*	SERIAL COMMUNICATION MODULE				*
+*	task:									*
+*		- open serial communication			*
+*		- encode/decode packs				*
+*		- write/read data					*
+*		- debug print 						*
+*											*
+*********************************************/
 
 #include <stdio.h>
 #include <string.h>
@@ -31,13 +32,15 @@ const char* serialPorts[5]= {	ttyACM0,
 
 //initialize serial communication______________
 int openSerialCommunication(int* fd){
+	printf("Search for AVR device on serial ports...\n");
 	int k = 0;
 	for ( ; k<5 ; k++){
-		printf("/dev/ttyACM%d\n", k);
 		*fd = open(serialPorts[k], O_RDWR | O_NOCTTY | O_NDELAY);
 		if (*fd >= 0){
+			printf("# /dev/ttyACM%d found\n", k);
 			return k;
 		}
+		else { printf("# /dev/ttyACM%d not found\n", k); }
 	}
 	return -1;
 }
@@ -76,11 +79,12 @@ void setSerialAttributes(int fd){
 
 //_________SERVOCONFIG_T* ===> UINT8_T*	[run on pc]
 inline void encodeConfig(ServoConfig_t* config, uint8_t* buf){
-	buf[0] = (config->servoX) >> 8;		//high bits
-	buf[1] = (config->servoX) & 0xFF;	//low bits
-	buf[2] = (config->servoY) >> 8;		//high bits
+	buf[0] = (config->servoX) & 0xFF;	//low bits
+	buf[1] = (config->servoX) >> 8;		//high bits
+	buf[2] = '\r';
 	buf[3] = (config->servoY) & 0xFF;	//low bits
-	strcat(buf,"\n");
+	buf[4] = (config->servoY) >> 8;		//high bits
+	buf[5] = '\r';
 }
 
 //_________UINT8_T* ===> SERVOCONFIG_T*	[run on avr]
@@ -97,10 +101,12 @@ void printServoConfig(ServoConfig_t* config){
 }
 
 void printEncodedPack(uint8_t* buf){
-	printf("\n	 ===============================\n	|");
+	printf("\n	 ================================================\n	|");
 	printf(" 0x%02X  |", buf[0]);
 	printf(" 0x%02X  |", buf[1]);
-	printf(" 0x%02X  |", buf[2]);
+	printf(" 0x%02X  ||", buf[2]);
 	printf(" 0x%02X  |", buf[3]);
-	printf("\n	 ===============================\n");
+	printf(" 0x%02X  |", buf[4]);
+	printf(" 0x%02X  |", buf[5]);
+	printf("\n	 ================================================\n");
 }
