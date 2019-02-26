@@ -81,10 +81,10 @@ void setSerialAttributes(int fd){
 inline void encodeConfig(ServoConfig_t* config, uint8_t* buf){
 	buf[0] = (config->servoX) & 0xFF;	//low bits
 	buf[1] = (config->servoX) >> 8;		//high bits
-	buf[2] = '\r';
+	buf[2] = '#';
 	buf[3] = (config->servoY) & 0xFF;	//low bits
 	buf[4] = (config->servoY) >> 8;		//high bits
-	buf[5] = '\r';
+	buf[5] = '\n';
 }
 
 //_________UINT8_T* ===> SERVOCONFIG_T*	[run on avr]

@@ -21,10 +21,10 @@
 #define   DEAD_BAND       3   *0.000001
 #define   HALF_DEGREE     3.5 *0.000001 
 
-#define   MIN_STEP        HALF_DEGREE/PERIOD   //56
-#define   HALF_ANGLE = 23200;
-#define	  MAX_ANGLE = HALF_ANGLE+6000;
-#define   MIN_ANGLE	= HALF_ANGLE-6000;
+#define   MIN_STEP          HALF_DEGREE/PERIOD   //56
+#define   HALF_ANGLE        23200
+#define	  MAX_ANGLE         HALF_ANGLE+12000
+#define   MIN_ANGLE         HALF_ANGLE-12000
 /*********************************************/
 
 
