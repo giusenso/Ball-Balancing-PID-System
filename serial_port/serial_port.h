@@ -23,8 +23,9 @@
 
 #define   MIN_STEP          HALF_DEGREE/PERIOD   //56
 #define   HALF_ANGLE        23200
-#define	  MAX_ANGLE         HALF_ANGLE+12000
-#define   MIN_ANGLE         HALF_ANGLE-12000
+#define   ANGLE_OFFSET      12000
+#define	  MAX_ANGLE         HALF_ANGLE+ANGLE_OFFSET
+#define   MIN_ANGLE         HALF_ANGLE-ANGLE_OFFSET
 /*********************************************/
 
 

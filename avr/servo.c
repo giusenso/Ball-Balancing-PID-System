@@ -69,26 +69,28 @@ inline uint16_t decodeX(uint8_t* buf){
 }
 
 inline uint16_t decodeY(uint8_t* buf){
-	return( (buf[4]<<8) | buf[3] );
+	return( (buf[3]<<8) | buf[2] );
 }
 //---------------------------------------------------------
 void PWM_init(void){
-
+  /* ServoX = Timer 3 = digital pin 5 = DDRE
+	 ServoY = Timer 4 = digital pin 6 = DDRH
+  */
   //Data direction register
-	DDRB |= 0xFF;    //digital pin 11
   DDRE |= 0xFF;    //digital pin 5
-
-	//Configure TIMER1
-	TCCR1A = TCCRA_MASK;
-	TCCR1B = TCCRB_MASK;
+  DDRH |= 0xFF;    //digital pin 6
 
   //Configure TIMER3
   TCCR3A = TCCRA_MASK;
+
   TCCR3B = TCCRB_MASK;
+  //Configure TIMER4
+  TCCR4A = TCCRA_MASK;
+  TCCR4B = TCCRB_MASK;
 
   //Top timers value
-  ICR1 = 48047;
   ICR3 = 48047;
+  ICR4 = 48047;
 
 }
 //---------------------------------------------------------
@@ -100,15 +102,12 @@ int main(void){
   UART_putString((uint8_t*)"Ready to control servos.\n");
   PWM_init();
 
-  uint8_t buf[6] = {0,0,0,0,0,0};
-
-  uint16_t x_pulse = HALF_ANGLE;
-  uint16_t y_pulse = HALF_ANGLE;
+  uint8_t buf[5] = {0,0,0,0,0};
 
   while(1) {//_______________
-
+	
     UART_getString(buf);
-    OCR1A = decodeX(buf);
-    OCR3A = decodeY(buf);
+    OCR3A = decodeX(buf);
+    OCR4A = decodeY(buf);
   }
 }
