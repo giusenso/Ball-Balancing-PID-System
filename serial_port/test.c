@@ -14,14 +14,22 @@ int main(){
 
 	int fd, bytes_written;
 
-	if (openSerialCommunication(&fd) < 0){
-		printf("ERROR: cannot open serial communication\n");
+	if(openSerialCommunication(&fd) < 0){
+		printf("ERROR: cannot open serial communication. exit.\n");
 		return -1;
 	}
 	else printf("Serial communication estabilished\n");
 
 	setSerialAttributes(fd);
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+	/*
+	if(!handShake(&fd)) {
+		printf("ERROR: HANDSHAKE FAILED. exit.\n");
+		return -1;
+	}
+	else printf("Handshake successfully done\n");
+	*/
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	//Initialize data structure________________
 	ServoConfig_t config;
 
@@ -32,9 +40,9 @@ int main(){
 
 	int count = 0, speed;
 
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // TEST 1: X UP AND DOWN MOTION
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	config.servoX = MIN_ANGLE;
 	speed = 150;
 	while(config.servoX<MAX_ANGLE){
@@ -46,7 +54,7 @@ int main(){
 		printf("\ncount:%d | #%d Bytes written to /dev/ttyACM \n ____________________________________________\n", count, bytes_written);
 
 		usleep(30000); count++;
-		
+
 		config.servoX += speed;
 	}
 	speed = 250;
@@ -59,14 +67,14 @@ int main(){
 		printf("\ncount:%d | #%d Bytes written to /dev/ttyACM \n ____________________________________________\n", count, bytes_written);
 
 		usleep(30000); count++;
-		
+
 		config.servoX -= speed;
 	}
 	usleep(3000000);
 
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // TEST 2: Y UP AND DOWN MOTION
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	config.servoY = MIN_ANGLE;
 	speed = 150;
 	while(config.servoY<MAX_ANGLE){
@@ -78,7 +86,7 @@ int main(){
 		printf("\ncount:%d | #%d Bytes written to /dev/ttyACM \n ____________________________________________\n", count, bytes_written);
 
 		usleep(30000); count++;
-		
+
 		config.servoY += speed;
 	}
 	speed = 250;
@@ -91,14 +99,14 @@ int main(){
 		printf("\ncount:%d | #%d Bytes written to /dev/ttyACM \n ____________________________________________\n", count, bytes_written);
 
 		usleep(30000); count++;
-		
+
 		config.servoY -= speed;
 	}
 	usleep(3000000);
 
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // TEST 3: X AND Y OPPOSITE MOTION
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	config.servoX = MAX_ANGLE;
 	config.servoY = MIN_ANGLE;
 	speed = 150;
@@ -131,19 +139,19 @@ int main(){
 		usleep(30000);
 	}
 	usleep(1000000);
-	
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // TEST 4: ARMONIC MOTION, PLATFORM CIRCOLAR MOTION
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	printf("\n ARMONIC TEST\n");
 	usleep(2000000);
-	
+
 	count = 0;
 	speed = 400;
 	config.servoX = MAX_ANGLE;
 	config.servoY = MIN_ANGLE;
 	float q = ((float)config.servoX - HALF_ANGLE)/(ANGLE_OFFSET/80);
-	
+
 	while(count<350){
 		encodeConfig(&config, buf);
 		printEncodedPack(buf);
@@ -161,7 +169,7 @@ int main(){
 		count++;
 		usleep(30000);
 	}
-	
+
 	while(count<700){
 		speed = 600;
 		encodeConfig(&config, buf);
@@ -180,8 +188,7 @@ int main(){
 		count++;
 		usleep(30000);
 	}
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     return 0;
 }

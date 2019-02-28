@@ -27,8 +27,7 @@ const char* serialPorts[5]= {	ttyACM0,
 								ttyACM3,
 								ttyACM4
 							};
-// ********************************************************************************
-
+//------------------------------------------
 
 //initialize serial communication______________
 int openSerialCommunication(int* fd){
@@ -45,7 +44,7 @@ int openSerialCommunication(int* fd){
 	return -1;
 }
 
-
+//-----------------------------------------
 // Setting the Attributes of the serial port using termios structure
 void setSerialAttributes(int fd){
 	struct termios SerialPortSettings;	/* Create the structure                          */
@@ -76,8 +75,8 @@ void setSerialAttributes(int fd){
 	}
 }
 
-
-//_________SERVOCONFIG_T* ===> UINT8_T*	[run on pc]
+//-----------------------------------------
+// SERVOCONFIG_T* ===> UINT8_T*	[run on pc]
 inline void encodeConfig(ServoConfig_t* config, uint8_t* buf){
 	buf[0] = (config->servoX) & 0xFF;	//low bits
 	buf[1] = (config->servoX) >> 8;		//high bits
@@ -85,15 +84,39 @@ inline void encodeConfig(ServoConfig_t* config, uint8_t* buf){
 	buf[3] = (config->servoY) >> 8;		//high bits
 	buf[4] = '\n';
 }
+//-----------------------------------------
+bool handShake(int* fd){	//to be tested
+	printf("\n HANDSHACKING: ");
+	int i, j, bytes_written, bytes_read;
+	uint8_t write_buf[5], read_buf[5];
 
+	for (i=1; i<6; i++){
+		for(j=0; j<4; j++) write_buf[j] = 7*j*i+7;
+		buf[4] = '\n';
 
+		bytes_written = write(fd, (void*)write_buf, sizeof(write_buf));
+		usleep(150000);
+		printf("=");
+
+		bytes_read = read(fd, (void*)read_buf, sizeof(read_buf));
+		usleep(150000);
+		printf("=");
+
+		for(j=0; j<5; j++) if(write_buf[j] != read_buf[j]) return false;
+	}
+	bytes_written = write(fd, (void*)"done\n", sizeof(write_buf));
+	printf(" Done.\n\n");
+	usleep(250000);
+	return true;
+}
+//-----------------------------------------
 void printServoConfig(ServoConfig_t* config){
 	printf("\n	 ============ ServoConfig(%d) ============= \n", (int)sizeof(ServoConfig_t));
 	printf("	||	servoX:		%d	0x%02X	 ||\n", config->servoX, config->servoX);
 	printf("	||	servoY:		%d	0x%02X	 ||\n", config->servoY, config->servoY);
 	printf("	 ========================================= \n");
 }
-
+//-----------------------------------------
 void printEncodedPack(uint8_t* buf){
 	printf("\n	 =========================================\n	|");
 	printf(" 0x%02X  |", buf[0]);
@@ -103,4 +126,3 @@ void printEncodedPack(uint8_t* buf){
 	printf(" 0x%02X  |", buf[4]);
 	printf("\n	 =========================================\n");
 }
-

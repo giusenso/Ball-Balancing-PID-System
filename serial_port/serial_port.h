@@ -15,11 +15,11 @@
 #define     ttyACM4		"/dev/ttyACM4"
 
 /*********************************************/
-/*      SERVOS                               */             
+/*      SERVOS                               */
 /*********************************************/
 #define   PERIOD          1/F_CPU
 #define   DEAD_BAND       3   *0.000001
-#define   HALF_DEGREE     3.5 *0.000001 
+#define   HALF_DEGREE     3.5 *0.000001
 
 #define   MIN_STEP          HALF_DEGREE/PERIOD   //56
 #define   HALF_ANGLE        23200
@@ -41,6 +41,7 @@ int openSerialCommunication(int* fd);
 void setSerialAttributes(int fd);
 void encodeConfig(ServoConfig_t* config, uint8_t* buf);
 void decodeConfig(uint8_t* buf, ServoConfig_t* config);
+bool handShake(uint8_t* buf);
 void printServoConfig(ServoConfig_t* config);
 void printEncodedPack(uint8_t* buf);
 

@@ -64,6 +64,23 @@ void UART_putString(uint8_t* buf){
 }
 
 //---------------------------------------------------------
+bool handShake(){
+    uint8_t buf[5];
+    //echo the buffer for 5 times
+    for (int i=0 ; i<5 ; i++){
+        uint8_t buf[5];
+        UART_getString(buf);
+        UART_putString(buf);
+    }
+
+    UART_getString(buf);
+    if(buf == "done"){
+        UART_putString((uint8_t*)"handshake done.\n");
+        return 1;
+    }
+    else return 0;
+}
+//---------------------------------------------------------
 inline uint16_t decodeX(uint8_t* buf){
 	return( (buf[1]<<8) | buf[0] );
 }
@@ -99,15 +116,31 @@ void PWM_init(void){
 int main(void){
 
   UART_init();
-  UART_putString((uint8_t*)"Ready to control servos.\n");
+  //if(!handShake()){ exit() }; //to be tested
+
   PWM_init();
+  UART_putString((uint8_t*)"Ready to control servos.\n");
 
-  uint8_t buf[5] = {0,0,0,0,0};
+  uint8_t buf[5] = {0,0,0,0,0}; //[ x , x , y , y , '\n' ]
 
-  while(1) {//_______________
-	
+  while(1) {
     UART_getString(buf);
     OCR3A = decodeX(buf);
     OCR4A = decodeY(buf);
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+/********************************************
+*	@Author: .                        		*
+*											*
+*********************************************/
