@@ -111,9 +111,15 @@ int main(int argc, char* argv[]){
 	printf("# write_buffer allocated\n");
 
 	//create ball instance
-	Ball* b = createBall(0, 0);
-	printBall(b, -1);
-
+	Ball b = createBall(0, 0);
+	//printBall(b);
+	
+//_ X PID SETUP __________________________________
+	printf("\n# creating PID structs... ");
+    
+    PID_t XPID = createPID(100, 50, 20);
+    printPID(XPID);
+//________________________________________________
 	//Initialize data structure________________
 	ServoConfig_t config = { 
 		.servoX = 0xFFFF,
@@ -122,20 +128,6 @@ int main(int argc, char* argv[]){
 
 	printServoConfig(&config);
 
-//_ X PID SETUP __________________________________
-	printf("\n# creating PID structs... ");
-    PID_t* XPID;
-
-    printf("\n# Setting up XPID parameters... ");
-    
-    setPid( XPID, SETPOINT_X,
-            ANGLE_OFFSET/(CONTROL_AREA/2), 0, 0,
-            0, 0, 1/FPS,
-            MIN_ANGLE, MAX_ANGLE);
-    
-    printf("Done.\n   | Kp = %lf\n   | Kd = %lf\n   | Ki = %lf\n",
-            XPID->Kp, XPID->Kd, XPID->Ki);
-//________________________________________________
 
 	usleep(1000000); //for debug
 	int global_clock = 0; //global clock
@@ -163,7 +155,7 @@ int main(int argc, char* argv[]){
 		//pass in thresholded frame to our object tracking function
 		//this function will return the x and y coordinates of the
 		//filtered object
-		trackFilteredObject(b, threshold, cameraFeed);
+		trackFilteredObject(&b, threshold, cameraFeed);
 
 		//show frames
 		imshow(windowName2, threshold);
@@ -171,30 +163,18 @@ int main(int argc, char* argv[]){
 		//imshow(windowName1,HSV);
 
 		// PID COMPUTE
-		config.servoX = (uint16_t)PIDCompute(XPID, b->x[0]);
+		config.servoX = (uint16_t)PIDCompute(&XPID, b.x[0]);
 
 		encodeConfig(&config, buf);
 		printEncodedPack(buf);
 
-		bytes_written = write(fd,(void*)buf, sizeof(buf));
-		printf("\n	X pulse: %d |	Y pulse: %d\n", config.servoX, 0);
+		//bytes_written = write(fd,(void*)buf, sizeof(buf));
+		printf("\n	X pulse: %d    |    Y pulse: %d\n", config.servoX, 0);
 		printf("\ncount:%d | #%d Bytes written to /dev/ttyACM \n ____________________________________________\n",
 				global_clock, bytes_written);
 
 
-		global_clock++;
-		printBall(b, global_clock);
-		//increase global clock counter
-		if (global_clock%5 == 0){
-			time(&end);
-			fps = global_clock/(difftime(end, start));
-			printf("\n*********************\n");
-			printf("# difftime: %f\n", (float)difftime(end, start));
-			printf("# FPS:	%.2f", fps);
-			printf("\n*********************\n");
-			time(&start);
-			global_clock = 0;
-		}
+		//printBall(b);
 
 		if(waitKey(FPS) >= 0) break;
 

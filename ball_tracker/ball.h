@@ -9,8 +9,8 @@ typedef struct Ball {
     uint16_t    dy;
     uint16_t    fx;
     uint16_t    fy;
-    float       phi;
     float       v;
+    float       phi;
 }Ball;
 
 #endif

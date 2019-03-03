@@ -15,8 +15,8 @@
  *------- Ball physics modelling and computation functions --------------------------*
  *************************************************************************************/
 
-Ball* createBall(uint16_t _x, uint16_t _y);
-void printBall(Ball* b, uint16_t global_clock);
+Ball createBall(uint16_t _x, uint16_t _y);
+void printBall(Ball b);
 bool updateBall(Ball* b, uint16_t _x, uint16_t _y);
 
 inline void updatePosVec(Ball* b, uint16_t _x, uint16_t _y){

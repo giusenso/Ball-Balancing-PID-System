@@ -18,23 +18,22 @@
 
 //_ Function Declarations _____________________
 
-/* Setup() **********************************************************************/
-void setPid(PID_t* pid, float setpoint,
-            float Kp, float Kd, float Ki,
-            float pre_error, float error, float dt,
-            uint16_t min, uint16_t max){
-
-    pid->setpoint   =   setpoint;
-    pid->pre_error  =   pre_error;
-    pid->error      =   error;
-    pid->output     =   0; 
-    pid->integral   =   0;
-    pid->Kp =   Kp;
-    pid->Kd =   Kd;
-    pid->Ki =   Ki;
-    pid->dt =   dt;
-    pid->min=   min;
-    pid->max=   max;
+/* create() **********************************************************************/
+PID_t createPID(float _Kp, float _Kd, float _Ki){
+    PID_t pid = {
+        .Kp         =   _Kp,
+        .Ki         =   _Ki,
+        .Kd         =   _Kd,
+        .setpoint   =   FRAME_HEIGHT/2,
+        .error      =   0,
+        .pre_error  =   0,
+        .dt         =   1/FPS,
+        .output     =   0,
+        .integral   =   0,
+        .min        =   MIN_ANGLE,
+        .max        =   MAX_ANGLE
+    };
+    return pid;
 }
 
 /* Compute() **********************************************************************
@@ -78,8 +77,7 @@ inline void makeServoConfig(ServoConfig_t* config, PID_t* XPID, PID_t* YPID, Poi
 }
 
 //print routine for debugging purpouse
-void printPID(PID_t* pid){
+void printPID(PID_t pid){
     printf("\n    err = %lf\n   pre_err = %lf   \n    P+I+D    = %lf",
-            pid->error, pid->pre_error,
-            pid->output);
+            pid.error, pid.pre_error, pid.output);
 }

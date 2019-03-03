@@ -12,9 +12,9 @@
 #define   D_MAX   50
 //_ Data ____________________________
 
-typedef struct PID{
-    float setpoint; //px coordinate
+typedef struct PID_t{
     float Kp, Ki, Kd;
+    float setpoint; //px coordinate
     float error;
     float pre_error;
     float dt;
@@ -26,15 +26,11 @@ typedef struct PID{
 
 //_ Function Signature _________________________
 
-void setPid(PID_t* pid, float setpoint,
-            float Kp, float Kd, float Ki,
-            float pre_error, float error, float dt,
-            uint16_t min, uint16_t max);
-
+PID_t createPID(float Kp, float Kd, float Ki);
 
 float PIDCompute(PID_t* pid, uint16_t ball_position);
 
-void printPID(PID_t* pid);
+void printPID(PID_t pid);
 
 
 #endif
