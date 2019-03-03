@@ -85,17 +85,6 @@ int main(int argc, char* argv[]){
 
 	//_____________________________________________
 
-	//initialize write_buffer_______________________
-	uint8_t write_buffer[6];
-	int bytes_written = 0;
-	printf("# write_buffer allocated\n");
-
-	//Initialize data structure________________
-	ServoConfig_t* config;
-	config->servoX = 0xFFFF;
-	config->servoY = 0xFFFF;
-
-	printServoConfig(config);
 
 	//grab 1 frame to capture hsv ball values
 	capture.read(cameraFeed);
@@ -117,11 +106,38 @@ int main(int argc, char* argv[]){
 	mp._V_MAX = &V_MAX;
 	setMouseCallback( windowName, callBackFunc, (void*)&mp);
 	printHSV(mp);
+//________________________________________________
 
+	//initialize write_buffer_______________________
+	uint8_t buf[5] = { 0,0, 0,0, '\n'};
+	int bytes_written = 0;
+	printf("# write_buffer allocated\n");
+
+	//Initialize data structure________________
+	ServoConfig_t* config;
+	config->servoX = 0xFFFF;
+	config->servoY = 0xFFFF;
+
+	printServoConfig(config);
+
+//_ X PID SETUP __________________________________
+	printf("\n# creating PID structs... ");
+    PID_t* XPID;
+
+    printf("\n# Setting up XPID parameters... ");
+    
+    setPid( XPID, SETPOINT_X,
+            ANGLE_OFFSET/(CONTROL_AREA/2), 0, 0,
+            0, 0, 1/FPS,
+            MIN_ANGLE, MAX_ANGLE);
+    
+    printf("Done.\n   | Kp = %lf\n   | Kd = %lf\n   | Ki = %lf\n",
+            XPID->Kp, XPID->Kd, XPID->Ki);
+//________________________________________________
 
 	usleep(1000000); //for debug
-	int global_clock = 1; //global clock
-	double fps = 99;
+	int global_clock = 0; //global clock
+	float fps = FPS;
 	time_t start, end;
 	time(&start);
 
@@ -152,19 +168,20 @@ int main(int argc, char* argv[]){
 		imshow(windowName, cameraFeed);
 		//imshow(windowName1,HSV);
 
-		/*------------------------------- Write data to serial port ----------------
-		//Update: for this use my function in serial_port.c
+		// PID COMPUTE
+		config->servoX = (uint16_t)PIDCompute(XPID, b->x[0]);
 
-		encodeConfig(config, write_buffer);
-		printf("encode result: %s\n", write_buffer);
+		encodeConfig(config, buf);
+		printEncodedPack(buf);
 
-		bytes_written = write(fd, write_buffer, sizeof(ServoConfig_t));
-		printf("# [%d] %s written to ttyACM0 \n", global_clock, write_buffer);
-		//printServoConfig(config);
-		printf("# [%d] %d Bytes written to ttyACM0\n\n", global_clock, bytes_written);
+		bytes_written = write(fd,(void*)buf, sizeof(buf));
+		printf("\n	X pulse: %d |	Y pulse: %d\n", config->servoX, 0);
+		printf("\ncount:%d | #%d Bytes written to /dev/ttyACM \n ____________________________________________\n",
+				global_clock, bytes_written);
 
-		--------------------------------------------------------------------------------------*/
 
+		global_clock++;
+		printBall(b, global_clock);
 		//increase global clock counter
 		if (global_clock%5 == 0){
 			time(&end);
@@ -177,12 +194,7 @@ int main(int argc, char* argv[]){
 			global_clock = 0;
 		}
 
-		global_clock++;
-		printBall(b, global_clock);
-
-		//delay 100ms so that screen can refresh.
-		//image will not appear without this waitKey() command
-		if(waitKey(100) >= 0) break;
+		if(waitKey(FPS) >= 0) break;
 
 
 	}//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -211,8 +223,6 @@ int main(int argc, char* argv[]){
 	//free fd and structures
 	printf("# Close file descriptor and free data structures... ");
 	close(fd);
-	//free(b);
-	//free(write_buffer);
 
 	printf("Done.\n____________________________\n\n");
 

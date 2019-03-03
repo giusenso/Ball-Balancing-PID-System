@@ -19,64 +19,56 @@
 //_ Function Declarations _____________________
 
 /* Setup() **********************************************************************/
-void setPid(PID_t* pid, float setpoint, float tollerance, float dt,
-            float P, float I, float D, float kp, float kd, float ki,
-            float pre_error, float error){
+void setPid(PID_t* pid, float setpoint,
+            float Kp, float Kd, float Ki,
+            float pre_error, float error, float dt,
+            uint16_t min, uint16_t max){
 
-    pid->setpoint = setpoint;
-    pid->tollerance = tollerance;
-    pid->dt = dt;
-    pid->P = P;
-    pid->I = I;
-    pid->D = D;
-    pid->kp = kp;
-    pid->kd = kd;
-    pid->ki = ki;
-    pid->pre_error = pre_error;
-    pid->error = error;
-
+    pid->setpoint   =   setpoint;
+    pid->pre_error  =   pre_error;
+    pid->error      =   error;
+    pid->output     =   0; 
+    pid->integral   =   0;
+    pid->Kp =   Kp;
+    pid->Kd =   Kd;
+    pid->Ki =   Ki;
+    pid->dt =   dt;
+    pid->min=   min;
+    pid->max=   max;
 }
 
 /* Compute() **********************************************************************
  *   This function should be called every time "void loop()" executes.
  *   the function will decide for itself whether a new
  *   pid Output needs to be computed.
+ * 
+ *   note: error is expressed in pixels, control should be a duty cicle,
+ *   so we need to map this gap with constant:
+ *       W(multiply) and Q(offset) 
  **********************************************************************************/
 //  (pid, ball) ==> P+I+D
-float PIDCompute(PID_t* pid, uint16_t ball_position) {
 
+float PIDCompute(PID_t* pid, uint16_t ball_position) {
+    
     //set old err
     pid->pre_error = pid->error;
 
-    //calculate new errors
-    pid->error = pid->setpoint - ball_position;
+    //compute new error
+    pid->error = (pid->setpoint-ball_position);
 
-    //if we don't need to compute
-    if (fabsf(pid->error) < pid->tollerance){
-        pid->P = 0;
-        pid->I = 0;
-        pid->D = 0;
-    }
+    //update integral
+    pid->integral += pid->error * pid->dt; 
 
-    //if the ball is out of target area: compute P+i+D
-    if (fabsf(pid->error) > pid->tollerance){
+    pid->output =
+            HALF_ANGLE +
+            pid->Kp * pid->error +
+            pid->Ki * pid->integral + 
+            pid->Kd * ((pid->error-pid->pre_error)/pid->dt);
+    
+    if(pid->output<MIN_ANGLE) pid->output=MIN_ANGLE;
+    else if(pid->output>MAX_ANGLE) pid->output=MAX_ANGLE;
 
-        //P term
-        pid->P = pid->kp * pid->error;
-        if (pid->P < P_MIN) pid->P = P_MIN;
-        else if (pid->P > P_MAX) pid->P = P_MAX;
-
-        //I term
-        pid->I = pid->ki * pid->error;
-        if (pid->I < I_MIN) pid->I = I_MIN;
-        else if (pid->I > I_MAX) pid->I = I_MAX;
-
-        //D term
-        pid->D = pid->kd * pid->error;
-        if (pid->D < D_MIN) pid->D = D_MIN;
-        else if (pid->D > D_MAX) pid->D = D_MAX;   
-    }
-    return pid->P + pid->I + pid->D;
+    return pid->output;
 }
 
 //this inline function do all the work
@@ -85,13 +77,9 @@ inline void makeServoConfig(ServoConfig_t* config, PID_t* XPID, PID_t* YPID, Poi
     config->servoY = (uint16_t)PIDCompute(YPID, ball_pos.y);
 }
 
-
 //print routine for debugging purpouse
 void printPID(PID_t* pid){
-    printf("\n    err = %lf    pre_err = %lf\
-            \n    P    = %lf\
-            \n    I    = %lf\
-            \n    D    = %lf\n",
+    printf("\n    err = %lf\n   pre_err = %lf   \n    P+I+D    = %lf",
             pid->error, pid->pre_error,
-            pid->P, pid->I, pid->D);
+            pid->output);
 }

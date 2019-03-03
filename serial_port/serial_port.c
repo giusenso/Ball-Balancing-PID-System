@@ -76,7 +76,7 @@ void setSerialAttributes(int fd){
 }
 
 //-----------------------------------------
-// SERVOCONFIG_T* ===> UINT8_T*	[run on pc]
+// SERVOCONFIG_T* ===> UINT8_T*
 inline void encodeConfig(ServoConfig_t* config, uint8_t* buf){
 	buf[0] = (config->servoX) & 0xFF;	//low bits
 	buf[1] = (config->servoX) >> 8;		//high bits
@@ -92,7 +92,7 @@ bool handShake(int* fd){	//to be tested
 
 	for (i=1; i<6; i++){
 		for(j=0; j<4; j++) write_buf[j] = 7*j*i+7;
-		buf[4] = '\n';
+		write_buf[4] = '\n';
 
 		bytes_written = write(fd, (void*)write_buf, sizeof(write_buf));
 		usleep(150000);

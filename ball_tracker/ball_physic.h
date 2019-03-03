@@ -26,7 +26,6 @@ inline void updatePosVec(Ball* b, uint16_t _x, uint16_t _y){
     v = LOAD((const VEC*)((b->y)-1));
     STORE((VEC*)(v), b->y);
     b->y[0] = _y;
-
 }
 
 inline void updatePos(Ball* b, uint16_t _x, uint16_t _y){

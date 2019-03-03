@@ -20,13 +20,14 @@ typedef enum{
 
 
 typedef struct PID{
-    float setpoint;
-    float tollerance;   //in pixels
-    float dt;
-    float P, I, D;
-    float kp, ki, kd;
+    float setpoint; //px coordinate
+    float Kp, Ki, Kd;
     float error;
     float pre_error;
+    float dt;
+    float output;
+    float integral;
+    uint16_t min, max;
 }PID_t;
 
 #define   P_MAX   600
@@ -38,9 +39,10 @@ typedef struct PID{
 
 //_ Function Signature _________________________
 
-void setPid(PID_t* pid, float setpoint, float tollerance, float dt, 
-            float P, float I, float D, float kp, float kd, float ki, 
-            float pre_error, float error);
+void setPid(PID_t* pid, float setpoint,
+            float Kp, float Kd, float Ki,
+            float pre_error, float error, float dt,
+            uint16_t min, uint16_t max);
 
 
 float PIDCompute(PID_t* pid, int ball_position);

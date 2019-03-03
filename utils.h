@@ -16,15 +16,30 @@ typedef struct ServoConfig {
     uint16_t     servoY;
 } ServoConfig_t;
 
+/*********************************************/
+/*      SERVOS                               */
+/*********************************************/
+#define   PERIOD          1/F_CPU
+#define   DEAD_BAND       3   *0.000001
+#define   HALF_DEGREE     3.5 *0.000001
+
+#define   MIN_STEP          HALF_DEGREE/PERIOD   //56
+#define   HALF_ANGLE        23200
+#define   ANGLE_OFFSET      12000
+#define	  MAX_ANGLE         HALF_ANGLE+ANGLE_OFFSET
+#define   MIN_ANGLE         HALF_ANGLE-ANGLE_OFFSET
+/*********************************************/
 
 //_ Global Variables _______________________
 
 #define     PI                  3.1415
+#define     CONTROL_AREA        400
 #define     FRAME_WIDTH         640
 #define     FRAME_HEIGHT        480
 #define     TOLLERANCE          30
 #define     SETPOINT_X          FRAME_WIDTH/2
 #define     SETPOINT_Y          FRAME_HEIGHT/2
+#define     FPS                 15
 
 #define     bool        int
 #define     false       0
