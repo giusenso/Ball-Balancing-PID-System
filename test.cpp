@@ -16,8 +16,8 @@
 
 #include "serial_port/serial_port.h"
 #include "ball_tracker/ball.h"
-#include "ball_tracker/ball_tracker.h"
 #include "ball_tracker/ball_physic.h"
+#include "ball_tracker/ball_tracker.h"
 #include "pid/pid.h"
 
 using namespace cv;
@@ -37,10 +37,6 @@ int main(int argc, char* argv[]){
 
 	//matrix storage for binary threshold image
 	Mat threshold;
-
-	//create ball instance
-	Ball* b = createBall(0, 0);
-	printBall(b, -1);
 
 	//create slider bars for HSV filtering
 	createTrackbars();
@@ -85,7 +81,7 @@ int main(int argc, char* argv[]){
 
 	//_____________________________________________
 
-
+	/*
 	//grab 1 frame to capture hsv ball values
 	capture.read(cameraFeed);
 	cvtColor(cameraFeed,HSV,COLOR_BGR2HSV);
@@ -106,6 +102,7 @@ int main(int argc, char* argv[]){
 	mp._V_MAX = &V_MAX;
 	setMouseCallback( windowName, callBackFunc, (void*)&mp);
 	printHSV(mp);
+	*/
 //________________________________________________
 
 	//initialize write_buffer_______________________
@@ -113,12 +110,17 @@ int main(int argc, char* argv[]){
 	int bytes_written = 0;
 	printf("# write_buffer allocated\n");
 
-	//Initialize data structure________________
-	ServoConfig_t* config;
-	config->servoX = 0xFFFF;
-	config->servoY = 0xFFFF;
+	//create ball instance
+	Ball* b = createBall(0, 0);
+	printBall(b, -1);
 
-	printServoConfig(config);
+	//Initialize data structure________________
+	ServoConfig_t config = { 
+		.servoX = 0xFFFF,
+		.servoY = 0xFFFF
+	};
+
+	printServoConfig(&config);
 
 //_ X PID SETUP __________________________________
 	printf("\n# creating PID structs... ");
@@ -169,13 +171,13 @@ int main(int argc, char* argv[]){
 		//imshow(windowName1,HSV);
 
 		// PID COMPUTE
-		config->servoX = (uint16_t)PIDCompute(XPID, b->x[0]);
+		config.servoX = (uint16_t)PIDCompute(XPID, b->x[0]);
 
-		encodeConfig(config, buf);
+		encodeConfig(&config, buf);
 		printEncodedPack(buf);
 
 		bytes_written = write(fd,(void*)buf, sizeof(buf));
-		printf("\n	X pulse: %d |	Y pulse: %d\n", config->servoX, 0);
+		printf("\n	X pulse: %d |	Y pulse: %d\n", config.servoX, 0);
 		printf("\ncount:%d | #%d Bytes written to /dev/ttyACM \n ____________________________________________\n",
 				global_clock, bytes_written);
 

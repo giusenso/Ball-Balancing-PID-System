@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "pid.h"
+#include 
 
 int main(){
 
@@ -14,7 +15,7 @@ int main(){
     
     setPid( XPID, SETPOINT_X,
             ANGLE_OFFSET/CONTROL_AREA, 0, 0,
-            0, 0, FRAME_RATE,
+            0, 0, FPS,
             MIN_ANGLE, MAX_ANGLE);
     
     printf("Done.\n    Kp = %lf\n    Kd = %lf\n    Ki = %lf\n",

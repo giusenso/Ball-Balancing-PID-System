@@ -64,7 +64,7 @@ void UART_putString(uint8_t* buf){
 }
 
 //---------------------------------------------------------
-bool handShake(){
+/*bool handShake(){
     uint8_t buf[5];
     //echo the buffer for 5 times
     for (int i=0 ; i<5 ; i++){
@@ -79,7 +79,7 @@ bool handShake(){
         return 1;
     }
     else return 0;
-}
+}*/
 //---------------------------------------------------------
 inline uint16_t decodeX(uint8_t* buf){
 	return( (buf[1]<<8) | buf[0] );
@@ -90,7 +90,7 @@ inline uint16_t decodeY(uint8_t* buf){
 }
 //---------------------------------------------------------
 void PWM_init(void){
-  /* ServoX = Timer 3 = digital pin 5 = DDRE
+  /*	 ServoX = Timer 3 = digital pin 5 = DDRE
 	 ServoY = Timer 4 = digital pin 6 = DDRH
   */
   //Data direction register
@@ -112,7 +112,7 @@ void PWM_init(void){
 }
 //---------------------------------------------------------
 
-//*** M A I N ******************************************************************
+//*** M A I N ********************************************/
 int main(void){
 
   UART_init();
@@ -126,7 +126,7 @@ int main(void){
   while(1) {
     UART_getString(buf);
     OCR3A = decodeX(buf);
-    OCR4A = decodeY(buf);
+   // OCR4A = decodeY(buf);
   }
 }
 

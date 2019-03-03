@@ -77,7 +77,7 @@ void setSerialAttributes(int fd){
 
 //-----------------------------------------
 // SERVOCONFIG_T* ===> UINT8_T*
-inline void encodeConfig(ServoConfig_t* config, uint8_t* buf){
+void encodeConfig(ServoConfig_t* config, uint8_t* buf){
 	buf[0] = (config->servoX) & 0xFF;	//low bits
 	buf[1] = (config->servoX) >> 8;		//high bits
 	buf[2] = (config->servoY) & 0xFF;	//low bits
@@ -94,17 +94,17 @@ bool handShake(int* fd){	//to be tested
 		for(j=0; j<4; j++) write_buf[j] = 7*j*i+7;
 		write_buf[4] = '\n';
 
-		bytes_written = write(fd, (void*)write_buf, sizeof(write_buf));
+		bytes_written = write(*fd, write_buf, sizeof(write_buf));
 		usleep(150000);
 		printf("=");
 
-		bytes_read = read(fd, (void*)read_buf, sizeof(read_buf));
+		bytes_read = read(*fd, read_buf, sizeof(read_buf));
 		usleep(150000);
 		printf("=");
 
 		for(j=0; j<5; j++) if(write_buf[j] != read_buf[j]) return false;
 	}
-	bytes_written = write(fd, (void*)"done\n", sizeof(write_buf));
+	bytes_written = write(*fd, (void*)"done\n", sizeof(write_buf));
 	printf(" Done.\n\n");
 	usleep(250000);
 	return true;

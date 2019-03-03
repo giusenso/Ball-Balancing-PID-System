@@ -36,7 +36,7 @@ int main(){
 	uint8_t buf[5] = { 0,0,0,0,0 };
 
 	printf("\nStarting...\n");
-	usleep(1500000); // wait 2 seconds
+	usleep(4000000); // wait 2 seconds
 
 	int count = 0, speed;
 

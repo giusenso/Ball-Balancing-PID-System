@@ -24,8 +24,8 @@ typedef struct ServoConfig {
 #define   HALF_DEGREE     3.5 *0.000001
 
 #define   MIN_STEP          HALF_DEGREE/PERIOD   //56
-#define   HALF_ANGLE        23200
-#define   ANGLE_OFFSET      12000
+#define   HALF_ANGLE        23500
+#define   ANGLE_OFFSET      5000
 #define	  MAX_ANGLE         HALF_ANGLE+ANGLE_OFFSET
 #define   MIN_ANGLE         HALF_ANGLE-ANGLE_OFFSET
 /*********************************************/

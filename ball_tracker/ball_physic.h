@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <immintrin.h>
+#include <x86intrin.h>
 #include "../utils.h"
 #include "ball.h"
 
@@ -19,12 +20,12 @@ void printBall(Ball* b, uint16_t global_clock);
 bool updateBall(Ball* b, uint16_t _x, uint16_t _y);
 
 inline void updatePosVec(Ball* b, uint16_t _x, uint16_t _y){
-    VEC v = LOAD((const VEC*)((b->x)-1));
-    STORE((VEC*)(v), b->x);
+    __m128i v = _mm_loadu_si128( (const __m128i*)((b->x)-1) );
+    _mm_storeu_si128( (__m128i*)(b->x), v);
     b->x[0] = _x;
 
-    v = LOAD((const VEC*)((b->y)-1));
-    STORE((VEC*)(v), b->y);
+    v = _mm_loadu_si128((const __m128i*)((b->y)-1));
+    _mm_storeu_si128( (__m128i*)(b->y), v);
     b->y[0] = _y;
 }
 
