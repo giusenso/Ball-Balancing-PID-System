@@ -19,7 +19,8 @@ using namespace cv;
 //Colors
 const Scalar RED = Scalar(0, 0, 251);
 const Scalar GREEN = Scalar(0, 254, 0);
-const Scalar BLUE = Scalar(254, 0, 0);
+const Scalar BLUE = Scalar(205, 45, 0);
+const Scalar CYAN = Scalar(212,214,44);
 const Scalar ORANGE = Scalar(0, 165, 254);
 const Scalar DARK_GREEN = Scalar(35,149,22);
 
@@ -55,7 +56,7 @@ void on_trackbar( int, void* );
 String intToString(int number);
 void createTrackbars();
 void drawObjectV1(int x, int y, Mat &frame);
-void drawObjectV2(Ball* b, Mat &frame);
+void drawObjectV2(Ball* b, Mat &frame, bool noise_error);
 void morphOps(Mat &thresh);
 void trackFilteredObject(Ball* b, Mat threshold, Mat &cameraFeed);
 void circleDetector(Mat cameraFeed, Mat threshold);

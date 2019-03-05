@@ -106,7 +106,10 @@ int main(int argc, char* argv[]){
 	printf("\n# creating PID structs... ");
     
     PID_t XPID = createPID(150, 0, 0);
+	PID_t YPID = createPID(100, 0, 0);
     printPID(XPID);
+	printPID(YPID);
+
 //________________________________________________
 	//Initialize data structure________________
 	ServoConfig_t config = { 
@@ -130,14 +133,8 @@ int main(int argc, char* argv[]){
 	//imshow(windowName2, OUTPUT);
 	*/
 
-	printf("OKI");
 	usleep(2000000); //for debug
-
 	int global_clock = 0; //global clock
-	float fps = FPS;
-	time_t start, end;
-	time(&start);
-
 	printf("\n### All parameters setted, ready to go...\n\n");
 
 	//::: MAIN LOOP :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -147,17 +144,16 @@ int main(int argc, char* argv[]){
 		capture.read(MATS[0]);
 		//fps = capture.get(CV_CAP_PROP_FPS);
 
-		//convert frame from BGR to MATS[2] colorspace
+		//convert frame from BGR to HSV colorspace
 		cvtColor(MATS[0],MATS[2],COLOR_BGR2HSV);
-		//filter HSV image between values and store filtered image to
-		//MATS[1] matrix
+
+		//filter HSV image between values and store filtered image to MATS[1]
 		inRange(MATS[2],Scalar(H_MIN,S_MIN,V_MIN),Scalar(H_MAX,S_MAX,V_MAX),MATS[1]);
-		//perform morphological operations on MATS[1]ed image to eliminate noise
-		//and emphasize the filtered object(s)
+		
+		//eliminate noise and emphasize the filtered object(s)
 		morphOps(MATS[1]);
-		//pass in MATS[1]ed frame to our object tracking function
-		//this function will return the x and y coordinates of the
-		//filtered object
+
+		//this function will return the x and y ball coordinates
 		trackFilteredObject(&ball, MATS[1], MATS[0]);
 
 		//show frames
@@ -166,18 +162,22 @@ int main(int argc, char* argv[]){
 		//imshow(windowName1, MATS[2]);
 
 		if(ball.detected){
-			// PID COMPUTE
+			//PID compute
 			config.servoX = (uint16_t)PIDCompute(&XPID, ball.x[0]);
+			//config.servoY = (uint16_t)PIDCompute(&YPID, ball.y[0]);
+			
+			//Create Packet
 			encodeConfig(&config, buf);
 			printEncodedPack(buf);
 
+			//Send packet
 			//bytes_written = write(fd,(void*)buf, sizeof(buf));
 			printf("\n	X pulse: %d    |    Y pulse: %d\n", config.servoX, 0);
 			printf("\ncount:%d | #%d Bytes written to /dev/ttyACM \n ____________________________________________\n",
 				global_clock, bytes_written);
 
 		}
-		//printBall(b);
+		//printBall(ball);
 		global_clock++;
 		if(waitKey(FPS) >= 0) break;
 
@@ -201,6 +201,7 @@ int main(int argc, char* argv[]){
 	printf("# Release cv::Mat... ");
 	MATS[0].release();
 	MATS[1].release();
+	MATS[2].release();
 	printf("Done.\n");
 
 	//free fd and structures

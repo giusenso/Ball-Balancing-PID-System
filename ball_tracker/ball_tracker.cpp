@@ -95,23 +95,32 @@ void drawObjectV1(int x, int y, Mat &frame){
 }
 
 //_ Draw version 2 ____________________________
-void drawObjectV2(Ball* ball, Mat &frame){
+void drawObjectV2(Ball* ball, Mat &frame, bool noise_error){
 
-	//draw square area
-	rectangle(	frame,
+	if(noise_error){	//////////////////////////////////////
+		rectangle(	frame,
 				Point(SETPOINT_X-202, SETPOINT_Y-202),
 				Point(SETPOINT_X+202, SETPOINT_Y+202),
-				ORANGE, 3, LINE_8, 0);
+				RED, 3, LINE_8, 0);
+		putText(frame, "TOO MUCH NOISE! ADJUST FILTERS", Point(180,220), 1, 1, RED , 2);
+		return;
+	}
 
-	//draw setpoint area
-	circle(frame, Point(SETPOINT_X,SETPOINT_Y), 2, DARK_GREEN, 3);
-	rectangle(	frame,
-				Point(SETPOINT_X-TOLLERANCE, SETPOINT_Y-TOLLERANCE),
-				Point(SETPOINT_X+TOLLERANCE, SETPOINT_Y+TOLLERANCE),
-				ORANGE, 1, LINE_4, 0);
-
-	if (ball->detected){
+	if (ball->detected){	//////////////////////////////////////
+			//draw square area
+		rectangle(	frame,
+					Point(SETPOINT_X-202, SETPOINT_Y-202),
+					Point(SETPOINT_X+202, SETPOINT_Y+202),
+					CYAN, 3, LINE_8, 0);
 		putText(frame, "BALL FOUND", Point(123,32), 1, 1, GREEN, 2);
+
+		//draw setpoint area
+		circle(frame, Point(SETPOINT_X,SETPOINT_Y), 2, CYAN, 3);
+		rectangle(	frame,
+					Point(SETPOINT_X-TOLLERANCE, SETPOINT_Y-TOLLERANCE),
+					Point(SETPOINT_X+TOLLERANCE, SETPOINT_Y+TOLLERANCE),
+					ORANGE, 1, LINE_4, 0);
+
 
 		//draw ball lines for position spot
 		rectangle(	frame,
@@ -124,22 +133,26 @@ void drawObjectV2(Ball* ball, Mat &frame){
 			arrowedLine(frame, Point(ball->x[0], ball->y[0]), Point(ball->fx, ball->fy) , RED, 2, 8, 0 , 0.4);
 		}
 		//draw previous positions
-		for (int i=1 ; i<8 ; i+=4){
+		for (int i=1 ; i<8 ; i++){
 			circle( frame, Point(ball->x[i], ball->y[i]), 2, ORANGE, -1, 8, 0 );
-			circle( frame, Point(ball->x[i+1], ball->y[i+1]), 2, ORANGE, -1, 8, 0 );
-			circle( frame, Point(ball->x[i+2], ball->y[i+2]), 2, ORANGE, -1, 8, 0 );
-			circle( frame, Point(ball->x[i+3], ball->y[i+3]), 2, ORANGE, -1, 8, 0 );
 		}
-
 		//display ball info
 		line(frame, Point(ball->x[0], 0), Point(ball->x[0], FRAME_HEIGHT), BLUE, 1);
 		line(frame, Point(0, ball->y[0]), Point(FRAME_WIDTH, ball->y[0]), BLUE, 1);
 		putText(frame,intToString(ball->y[0]),Point(ball->x[0]+2,ball->y[0]-42),1,1,BLUE,2);
 		putText(frame,intToString(ball->x[0]),Point(ball->x[0]+40,ball->y[0]+14),1,1,BLUE,2);
+		return;
 	}
-	else{
-		putText(frame, "BALL NOT FOUND", Point(123,32), 1, 1, RED , 2);
-	}
+
+	//////////////////////////////////////
+	//draw square area
+	rectangle(	frame,
+		Point(SETPOINT_X-202, SETPOINT_Y-202),
+		Point(SETPOINT_X+202, SETPOINT_Y+202),
+		ORANGE, 3, LINE_8, 0);
+
+	putText(frame, "BALL NOT FOUND", Point(123,32), 1, 1, RED , 2);
+	return;
 
 }
 
@@ -169,7 +182,7 @@ void morphOps(Mat &thresh){
 }
 
 void trackFilteredObject(Ball* ball, Mat threshold, Mat &cameraFeed){
-
+	bool noise_error = false;
 	Mat temp;
 	threshold.copyTo(temp);
 	//temp = threshold(buildBox(b));
@@ -199,14 +212,19 @@ void trackFilteredObject(Ball* ball, Mat threshold, Mat &cameraFeed){
 					updateBall(ball, moment.m10/area, moment.m01/area);
 					refArea = area;
 				}
-				else{
-					ball->detected = false;
-				}
 			}
-
-		} else putText(cameraFeed,"TOO MUCH NOISE! ADJUST FILTER",Point(100,32),1,2,RED,2);
+		}
+		else{
+			noise_error = true;
+		}
 	}
-	drawObjectV2( ball , cameraFeed );
+	else{
+		//restore default ball parameters
+		*ball = createBall(ball->x[0], ball->y[0]);
+	}
+
+	drawObjectV2( ball, cameraFeed, noise_error);
+
 	//release memory
 	temp.release();
 }
@@ -251,8 +269,8 @@ void callBackFunc(int event, int x, int y, int flags, void* param){
 		Vec3b hsv = HSV.at<Vec3b>(x,y);
 
 		int h = ((int)(hsv.val[0]))*(250.0/360.0);
-		int s = (int)(hsv.val[1]);
-		int v = (int)(hsv.val[2]);
+		//int s = (int)(hsv.val[1]);
+		//int v = (int)(hsv.val[2]);
 
 		int epsilon = 9;
 
