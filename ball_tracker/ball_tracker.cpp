@@ -69,8 +69,8 @@ void createTrackbars(){
     createTrackbar( "V_MAX", trackbarWindowName, &V_MAX, V_MAX, on_trackbar );
 }
 
+//_ Draw version 1 ____________________________
 void drawObjectV1(int x, int y, Mat &frame){
-
 	//Draw version 1
 
 	circle(frame,Point(x,y),24,Scalar(0,255,0),3);
@@ -94,48 +94,52 @@ void drawObjectV1(int x, int y, Mat &frame){
 
 }
 
-void drawObjectV2(Ball* b, Mat &frame){
+//_ Draw version 2 ____________________________
+void drawObjectV2(Ball* ball, Mat &frame){
 
-	//_ Draw version 2 ____________________________
+	//draw square area
+	rectangle(	frame,
+				Point(SETPOINT_X-202, SETPOINT_Y-202),
+				Point(SETPOINT_X+202, SETPOINT_Y+202),
+				ORANGE, 3, LINE_8, 0);
 
 	//draw setpoint area
 	circle(frame, Point(SETPOINT_X,SETPOINT_Y), 2, DARK_GREEN, 3);
 	rectangle(	frame,
 				Point(SETPOINT_X-TOLLERANCE, SETPOINT_Y-TOLLERANCE),
 				Point(SETPOINT_X+TOLLERANCE, SETPOINT_Y+TOLLERANCE),
-				DARK_GREEN, 2, LINE_8, 0);
+				ORANGE, 1, LINE_4, 0);
 
+	if (ball->detected){
+		putText(frame, "BALL FOUND", Point(123,32), 1, 1, GREEN, 2);
 
-	//draw ball lines for position spot
-	rectangle(	frame,
-				Point(b->x[0]-30, b->y[0]-30),
-				Point(b->x[0]+30, b->y[0]+30),
-				GREEN, 2, LINE_8, 0);
+		//draw ball lines for position spot
+		rectangle(	frame,
+					Point(ball->x[0]-30, ball->y[0]-30),
+					Point(ball->x[0]+30, ball->y[0]+30),
+					GREEN, 2, LINE_8, 0);
 
-    line(frame, Point(b->x[0], 0), Point(b->x[0], FRAME_HEIGHT), BLUE, 1);
-	line(frame, Point(0, b->y[0]), Point(FRAME_WIDTH, b->y[0]), BLUE, 1);
+		//draw velocity arrow
+		if (ball->v > 2.0){
+			arrowedLine(frame, Point(ball->x[0], ball->y[0]), Point(ball->fx, ball->fy) , RED, 2, 8, 0 , 0.4);
+		}
+		//draw previous positions
+		for (int i=1 ; i<8 ; i+=4){
+			circle( frame, Point(ball->x[i], ball->y[i]), 2, ORANGE, -1, 8, 0 );
+			circle( frame, Point(ball->x[i+1], ball->y[i+1]), 2, ORANGE, -1, 8, 0 );
+			circle( frame, Point(ball->x[i+2], ball->y[i+2]), 2, ORANGE, -1, 8, 0 );
+			circle( frame, Point(ball->x[i+3], ball->y[i+3]), 2, ORANGE, -1, 8, 0 );
+		}
 
-
-	//draw velocity arrow
-	if (b->v > 2.0){
-		arrowedLine(frame, Point(b->x[0], b->y[0]), Point(b->fx, b->fy) , RED, 2, 8, 0 , 0.4);
+		//display ball info
+		line(frame, Point(ball->x[0], 0), Point(ball->x[0], FRAME_HEIGHT), BLUE, 1);
+		line(frame, Point(0, ball->y[0]), Point(FRAME_WIDTH, ball->y[0]), BLUE, 1);
+		putText(frame,intToString(ball->y[0]),Point(ball->x[0]+2,ball->y[0]-42),1,1,BLUE,2);
+		putText(frame,intToString(ball->x[0]),Point(ball->x[0]+40,ball->y[0]+14),1,1,BLUE,2);
 	}
-	//draw previous positions
-	for (int i=1 ; i<6 ; i++){
-		circle( frame, Point(b->x[i], b->y[i]), 2, ORANGE, -1, 8, 0 );
+	else{
+		putText(frame, "BALL NOT FOUND", Point(123,32), 1, 1, RED , 2);
 	}
-
-	//draw square area
-	rectangle(	frame,
-				Point(SETPOINT_X-225, SETPOINT_Y-225),
-				Point(SETPOINT_X+225, SETPOINT_Y+225),
-				ORANGE, 3, LINE_8, 0);
-
-	//display ball info
-	putText(frame, "BALL DETECTED", Point(100,32), 1, 1, GREEN, 2);
-	putText(frame,intToString(b->y[0]),Point(b->x[0]+2,b->y[0]-42),1,1,BLUE,2);
-	putText(frame,intToString(b->x[0]),Point(b->x[0]+40,b->y[0]+14),1,1,BLUE,2);
-
 
 }
 
@@ -162,15 +166,13 @@ void morphOps(Mat &thresh){
 	//release
 	erodeElement.release();
 	dilateElement.release();
-
 }
 
-void trackFilteredObject(Ball* b, Mat threshold, Mat &cameraFeed){
+void trackFilteredObject(Ball* ball, Mat threshold, Mat &cameraFeed){
 
 	Mat temp;
 	threshold.copyTo(temp);
-	//temp =threshold(buildBox(b));
-
+	//temp = threshold(buildBox(b));
 
 	//these two vectors needed for output of findContours
 	std::vector< std::vector<cv::Point> > contours;
@@ -181,7 +183,6 @@ void trackFilteredObject(Ball* b, Mat threshold, Mat &cameraFeed){
 
 	//use moments method to find our filtered object
 	double refArea = 0;
-	bool objectFound = false;
 
 	if (hierarchy.size() > 0) {
 		int numObjects = hierarchy.size();
@@ -193,24 +194,19 @@ void trackFilteredObject(Ball* b, Mat threshold, Mat &cameraFeed){
 				double area = moment.m00;
 
                 if(area>MIN_OBJECT_AREA && area<MAX_OBJECT_AREA && area>refArea){
-					objectFound = true;
-					circleDetector(cameraFeed, threshold);
-					updateBall(b, moment.m10/area, moment.m01/area);
+					ball->detected = true;
+					//circleDetector(cameraFeed, threshold);
+					updateBall(ball, moment.m10/area, moment.m01/area);
 					refArea = area;
 				}
 				else{
-					objectFound = false;
-					putText(cameraFeed, "BALL NOT FOUND", Point(100,32), 1, 1, RED , 2);
+					ball->detected = false;
 				}
 			}
 
-			//let user know you found an object
-			if(objectFound ==true){
-				drawObjectV2( b , cameraFeed );
-			}
-
-		}else putText(cameraFeed,"TOO MUCH NOISE! ADJUST FILTER",Point(100,32),1,2,RED,2);
+		} else putText(cameraFeed,"TOO MUCH NOISE! ADJUST FILTER",Point(100,32),1,2,RED,2);
 	}
+	drawObjectV2( ball , cameraFeed );
 	//release memory
 	temp.release();
 }

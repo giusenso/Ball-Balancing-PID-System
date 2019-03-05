@@ -99,8 +99,8 @@ void PWM_init(void){
 
   //Configure TIMER3
   TCCR3A = TCCRA_MASK;
-
   TCCR3B = TCCRB_MASK;
+
   //Configure TIMER4
   TCCR4A = TCCRA_MASK;
   TCCR4B = TCCRB_MASK;
@@ -126,7 +126,7 @@ int main(void){
   while(1) {
     UART_getString(buf);
     OCR3A = decodeX(buf);
-   // OCR4A = decodeY(buf);
+    OCR4A = decodeY(buf);
   }
 }
 

@@ -29,14 +29,8 @@ using namespace cv;
 
 int main(int argc, char* argv[]){
 
-	//Matrix to store each frame of the webcam feed
-	Mat cameraFeed;
-
-	//matrix storage for HSV image
-	Mat HSV;
-
-	//matrix storage for binary threshold image
-	Mat threshold;
+	// Mat Array = [ webcam | masked | HSV ]
+	Mat MATS[3];
 
 	//create slider bars for HSV filtering
 	createTrackbars();
@@ -61,10 +55,9 @@ int main(int argc, char* argv[]){
 		return -1;
 	}
 
-
 	//set height and width of capture frame
-	capture.set(CV_CAP_PROP_FRAME_WIDTH,FRAME_WIDTH);
-	capture.set(CV_CAP_PROP_FRAME_HEIGHT,FRAME_HEIGHT);
+	capture.set(CV_CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
+	capture.set(CV_CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
 
 
 	//initialize serial communication______________
@@ -83,17 +76,12 @@ int main(int argc, char* argv[]){
 
 	/*
 	//grab 1 frame to capture hsv ball values
-	capture.read(cameraFeed);
-	cvtColor(cameraFeed,HSV,COLOR_BGR2HSV);
-	inRange(HSV,Scalar(H_MIN,S_MIN,V_MIN),Scalar(H_MAX,S_MAX,V_MAX),threshold);
-	morphOps(threshold);
-	trackFilteredObject(b, threshold, cameraFeed);
 
-	imshow(windowName2, threshold);
-	imshow(windowName, cameraFeed);
+	imshow(windowName2, MATS[1]);
+	imshow(windowName, MATS[0]);
 
 	mouseParams_t mp;
-	mp._mat = cameraFeed;
+	mp._mat = MATS[0];
 	mp._H_MIN = &H_MIN;
 	mp._H_MAX = &H_MAX;
 	mp._S_MIN = &S_MIN;
@@ -111,13 +99,13 @@ int main(int argc, char* argv[]){
 	printf("# write_buffer allocated\n");
 
 	//create ball instance
-	Ball b = createBall(0, 0);
-	//printBall(b);
+	Ball ball = createBall(0, 0);
+	//printBall(ball);
 	
 //_ X PID SETUP __________________________________
 	printf("\n# creating PID structs... ");
     
-    PID_t XPID = createPID(100, 50, 20);
+    PID_t XPID = createPID(150, 0, 0);
     printPID(XPID);
 //________________________________________________
 	//Initialize data structure________________
@@ -125,11 +113,26 @@ int main(int argc, char* argv[]){
 		.servoX = 0xFFFF,
 		.servoY = 0xFFFF
 	};
-
 	printServoConfig(&config);
 
+	/*
+	namedWindow("A", WINDOW_AUTOSIZE);
+	namedWindow("B", WINDOW_AUTOSIZE);
+	Mat OUTPUT;
+	Mat A = imread("/home/jius/Desktop/A.jpg", IMREAD_COLOR);
+	Mat B = imread("/home/jius/Desktop/B.jpg", IMREAD_COLOR);
+	A.convertTo(A, CV_64F);
+	B.convertTo(A, CV_64F);
+	//cv::hconcat(A, B, OUTPUT); // Accept array + size
+	//assert(480 == OUTPUT.rows && 1280 == OUTPUT.cols);
+	imshow("A",  A);
+	imshow("B",  B);
+	//imshow(windowName2, OUTPUT);
+	*/
 
-	usleep(1000000); //for debug
+	printf("OKI");
+	usleep(2000000); //for debug
+
 	int global_clock = 0; //global clock
 	float fps = FPS;
 	time_t start, end;
@@ -141,46 +144,44 @@ int main(int argc, char* argv[]){
 	while(true){
 
 		//store image to matrix
-		capture.read(cameraFeed);
+		capture.read(MATS[0]);
 		//fps = capture.get(CV_CAP_PROP_FPS);
 
-		//convert frame from BGR to HSV colorspace
-		cvtColor(cameraFeed,HSV,COLOR_BGR2HSV);
+		//convert frame from BGR to MATS[2] colorspace
+		cvtColor(MATS[0],MATS[2],COLOR_BGR2HSV);
 		//filter HSV image between values and store filtered image to
-		//threshold matrix
-		inRange(HSV,Scalar(H_MIN,S_MIN,V_MIN),Scalar(H_MAX,S_MAX,V_MAX),threshold);
-		//perform morphological operations on thresholded image to eliminate noise
+		//MATS[1] matrix
+		inRange(MATS[2],Scalar(H_MIN,S_MIN,V_MIN),Scalar(H_MAX,S_MAX,V_MAX),MATS[1]);
+		//perform morphological operations on MATS[1]ed image to eliminate noise
 		//and emphasize the filtered object(s)
-		morphOps(threshold);
-		//pass in thresholded frame to our object tracking function
+		morphOps(MATS[1]);
+		//pass in MATS[1]ed frame to our object tracking function
 		//this function will return the x and y coordinates of the
 		//filtered object
-		trackFilteredObject(&b, threshold, cameraFeed);
+		trackFilteredObject(&ball, MATS[1], MATS[0]);
 
 		//show frames
-		imshow(windowName2, threshold);
-		imshow(windowName, cameraFeed);
-		//imshow(windowName1,HSV);
+		imshow(windowName,  MATS[0]);
+		imshow(windowName2, MATS[1]);
+		//imshow(windowName1, MATS[2]);
 
-		// PID COMPUTE
-		config.servoX = (uint16_t)PIDCompute(&XPID, b.x[0]);
+		if(ball.detected){
+			// PID COMPUTE
+			config.servoX = (uint16_t)PIDCompute(&XPID, ball.x[0]);
+			encodeConfig(&config, buf);
+			printEncodedPack(buf);
 
-		encodeConfig(&config, buf);
-		printEncodedPack(buf);
-
-		//bytes_written = write(fd,(void*)buf, sizeof(buf));
-		printf("\n	X pulse: %d    |    Y pulse: %d\n", config.servoX, 0);
-		printf("\ncount:%d | #%d Bytes written to /dev/ttyACM \n ____________________________________________\n",
+			//bytes_written = write(fd,(void*)buf, sizeof(buf));
+			printf("\n	X pulse: %d    |    Y pulse: %d\n", config.servoX, 0);
+			printf("\ncount:%d | #%d Bytes written to /dev/ttyACM \n ____________________________________________\n",
 				global_clock, bytes_written);
 
-
+		}
 		//printBall(b);
-
+		global_clock++;
 		if(waitKey(FPS) >= 0) break;
 
-
 	}//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
 
 
 //__EXIT ROUTINE __________________________
@@ -198,8 +199,8 @@ int main(int argc, char* argv[]){
 
 	//release Mat
 	printf("# Release cv::Mat... ");
-	cameraFeed.release();
-	threshold.release();
+	MATS[0].release();
+	MATS[1].release();
 	printf("Done.\n");
 
 	//free fd and structures

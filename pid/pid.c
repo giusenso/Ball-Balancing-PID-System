@@ -27,7 +27,7 @@ PID_t createPID(float _Kp, float _Kd, float _Ki){
         .setpoint   =   FRAME_HEIGHT/2,
         .error      =   0,
         .pre_error  =   0,
-        .dt         =   1/FPS,
+        .dt         =   1.00/FPS,
         .output     =   0,
         .integral   =   0,
         .min        =   MIN_ANGLE,

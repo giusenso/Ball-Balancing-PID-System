@@ -9,6 +9,7 @@
 /*allocate and initialize a Ball instance*/
 Ball createBall(uint16_t _x, uint16_t _y){
 	Ball b = {
+		.detected = false,
 		.x 		= { _x,_x,_x,_x,_x,_x,_x,_x },
 		.y 		= { _y,_y,_y,_y,_y,_y,_y,_y },
 		.dx 	= 0,
