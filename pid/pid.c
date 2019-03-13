@@ -19,7 +19,7 @@
 //_ Function Declarations _____________________
 
 /* create() **********************************************************************/
-PID_t createPID(short _Kp, short _Kd, short _Ki, uint16_t setpoint){
+PID_t createPID(short _Kp, short _Ki, short _Kd, uint16_t setpoint, bool mode){
     PID_t pid = {
         .Kp         =   _Kp,
         .Ki         =   _Ki,
@@ -31,7 +31,8 @@ PID_t createPID(short _Kp, short _Kd, short _Ki, uint16_t setpoint){
         .output     =   0,
         .integral   =   0,
         .min        =   MIN_ANGLE,
-        .max        =   MAX_ANGLE
+        .max        =   MAX_ANGLE,
+        .inverted_mode = mode
     };
     return pid;
 }
@@ -53,17 +54,27 @@ float PIDCompute(PID_t* pid, uint16_t ball_position) {
     pid->pre_error = pid->error;
 
     //compute new error
-    pid->error = (pid->setpoint-ball_position);
+    if (!pid->inverted_mode) pid->error = (pid->setpoint-ball_position);
+    else pid->error = (ball_position-pid->setpoint);
 
-    //update integral
-    pid->integral += pid->error * pid->dt; 
+    //Integral: update and filter
+    pid->integral += pid->error * pid->dt;
+    if (pid->integral>100) pid->integral = 100;
+    else if(pid->integral<-100) pid->integral = -100;
 
+    //Derivative: Update and filter
+    short D = ((pid->error - pid->pre_error)/pid->dt);
+    if (D>2000) D=2000;
+    else if (D<-2000) D=-2000;
+
+    //output
     pid->output =
             HALF_ANGLE +
             pid->Kp * pid->error +
             pid->Ki * pid->integral + 
-            pid->Kd * ((pid->error-pid->pre_error)/pid->dt);
+            pid->Kd * D;
     
+
     if(pid->output<MIN_ANGLE) pid->output=MIN_ANGLE;
     else if(pid->output>MAX_ANGLE) pid->output=MAX_ANGLE;
 
@@ -79,10 +90,13 @@ inline void makeServoConfig(ServoConfig_t* config, PID_t* XPID, PID_t* YPID, Poi
 //print routine for debugging
 void printPID(PID_t pid){
     printf("*********************************************\n\
+            KP = %d , Ki = %d, KD = %d \n\
+            D = %lf\n\
             error: %d\n\
             dt:    %.4lf\n\
             integr:%d\n\
             output:%d\n*********************************************\n\n",
+            pid.Kp, pid.Ki, pid.Kd, pid.Kd * ((pid.error-pid.pre_error)/pid.dt),
             pid.error, pid.dt, pid.integral, pid.output);
 
 }

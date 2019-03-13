@@ -26,6 +26,7 @@ const String windowName1 = "HSV Image";
 const String windowName2 = "Thresholded Image";
 const String windowName3 = "After Morphological Operations";
 const String trackbarWindowName = "Trackbars";
+const String gainTrackbarWindowName = "PID GAINS";
 
 
 /*************************************************************************************
@@ -43,10 +44,11 @@ String intToString(int number){
 	return ss.str();
 }
 
+//________________________________________________________________________________
 void createTrackbars(){
 
 	//create window for trackbars
-    namedWindow(trackbarWindowName,0);
+    namedWindow(trackbarWindowName, 0);
 
 	//create memory to store trackbar name on window
 	char TrackbarName[50];
@@ -56,6 +58,7 @@ void createTrackbars(){
 	sprintf( TrackbarName, "S_MAX");
 	sprintf( TrackbarName, "V_MIN");
 	sprintf( TrackbarName, "V_MAX");
+
 	//create trackbars and insert them into window
 	//3 parameters are: the address of the variable that is changing when the trackbar is moved(eg.H_LOW),
 	//the max value the trackbar can move (eg. H_HIGH),
@@ -67,6 +70,27 @@ void createTrackbars(){
     createTrackbar( "S_MAX", trackbarWindowName, &S_MAX, S_MAX, on_trackbar );
     createTrackbar( "V_MIN", trackbarWindowName, &V_MIN, V_MAX, on_trackbar );
     createTrackbar( "V_MAX", trackbarWindowName, &V_MAX, V_MAX, on_trackbar );
+}
+
+//________________________________________________________________________________
+void createGainTrackbars(PID_t* XPID, PID_t* YPID){
+
+    namedWindow(gainTrackbarWindowName, 0);
+
+	char TrackbarName[50];
+	sprintf( TrackbarName, "X_Kp");
+	sprintf( TrackbarName, "X_Ki");
+	sprintf( TrackbarName, "X_Kd");
+	sprintf( TrackbarName, "Y_Kp");
+	sprintf( TrackbarName, "Y_Ki");
+	sprintf( TrackbarName, "Y_Kd");
+
+	createTrackbar( "X_Kp", gainTrackbarWindowName, (int*)&(XPID->Kp), P_MAX, on_trackbar );
+    createTrackbar( "X_Ki", gainTrackbarWindowName, (int*)&(XPID->Ki), I_MAX, on_trackbar );
+    createTrackbar( "X_Kd", gainTrackbarWindowName, (int*)&(XPID->Kd), D_MAX, on_trackbar );
+	createTrackbar( "Y_Kp", gainTrackbarWindowName, (int*)&(YPID->Kp), P_MAX, on_trackbar );
+    createTrackbar( "Y_Ki", gainTrackbarWindowName, (int*)&(YPID->Ki), I_MAX, on_trackbar );
+    createTrackbar( "Y_Kd", gainTrackbarWindowName, (int*)&(YPID->Kd), D_MAX, on_trackbar );
 }
 
 //_ Draw version 1 ____________________________

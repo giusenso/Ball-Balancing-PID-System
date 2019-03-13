@@ -3,12 +3,12 @@
 
 #include "../utils.h"
 
-#define   P_MIN   -600
-#define   P_MAX   600
-#define   I_MIN   -150
-#define   I_MAX   150
-#define   D_MIN   -50
-#define   D_MAX   50
+#define   P_MIN   0
+#define   P_MAX   40
+#define   I_MIN   0
+#define   I_MAX   25
+#define   D_MIN   0
+#define   D_MAX   10
 //_ Data ____________________________
 
 typedef struct PID_t{
@@ -20,12 +20,13 @@ typedef struct PID_t{
     uint16_t output;
     short integral;
     uint16_t min, max;
+    bool inverted_mode;
 }PID_t;
 
 
 //_ Function Signature _________________________
 
-PID_t createPID(short Kp, short Kd, short Ki, uint16_t setpoint);
+PID_t createPID(short Kp, short Ki, short Kd, uint16_t setpoint, bool mode);
 
 float PIDCompute(PID_t* pid, uint16_t ball_position);
 

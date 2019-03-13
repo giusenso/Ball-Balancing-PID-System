@@ -4,6 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui.hpp>
 #include "../utils.h"
+#include "../pid/pid.h"
 #include "ball.h"
 
 using namespace cv;
@@ -39,6 +40,7 @@ extern const String windowName1;
 extern const String windowName2;
 extern const String windowName3;
 extern const String trackbarWindowName;
+extern const String gainTrackbarWindowName;
 
 
 typedef struct mouseParams{
@@ -55,6 +57,7 @@ typedef struct mouseParams{
 void on_trackbar( int, void* );
 String intToString(int number);
 void createTrackbars();
+void createGainTrackbars(PID_t* XPID, PID_t* YPID);
 void drawObjectV1(int x, int y, Mat &frame);
 void drawObjectV2(Ball* b, Mat &frame, bool noise_error);
 void morphOps(Mat &thresh);

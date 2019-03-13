@@ -101,8 +101,8 @@ int main(int argc, char* argv[]){
 	
 //_ X PID SETUP __________________________________
 	printf("\n# creating PIDs... ");
-    PID_t XPID = createPID(25, 0, 0, FRAME_WIDTH/2);
-	PID_t YPID = createPID(-25, 0, 0, FRAME_HEIGHT/2);
+    PID_t XPID = createPID(0, 0, 0, FRAME_WIDTH/2, false);
+	PID_t YPID = createPID(0, 0, 0, FRAME_HEIGHT/2, true);
 	printf("Done. \n");
     printPID(XPID);
 	printPID(YPID);
@@ -144,8 +144,10 @@ int main(int argc, char* argv[]){
 	printf("\n### All parameters setted, ready to go...\nPress enter to start\n");
 	scanf("%c", &temp);
 
-	//create slider bars for HSV filtering
-	createTrackbars();
+	//create slider bars
+	//createTrackbars();
+	
+	createGainTrackbars(&XPID, &YPID);
 
 	//:::::::::::::: MAIN LOOP ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 	while(true){
@@ -155,7 +157,7 @@ int main(int argc, char* argv[]){
 		capture.read(MATS[0]);
 
 		//convert frame from BGR to HSV colorspace
-		cvtColor(MATS[0],MATS[2],COLOR_BGR2HSV);
+		cvtColor(MATS[0], MATS[2], COLOR_BGR2HSV);
 
 		//filter HSV image between values and store filtered image to MATS[1]
 		//inRange(MATS[2], Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), MATS[1]);
@@ -179,7 +181,6 @@ int main(int argc, char* argv[]){
 			config.servoY = (uint16_t)PIDCompute(&YPID, ball.y[0]);
 			//printPID(XPID);
 			printPID(YPID);
-			//printServoConfig(config);
 
 			//Create Packet
 			encodeConfig(&config, buf);
@@ -192,15 +193,15 @@ int main(int argc, char* argv[]){
 
 		if(waitKey(20) >= 0) break;
 		
-		frame_counter++;
-		time_from_beginning += XPID.dt;
+		//frame_counter++;
+		//time_from_beginning += XPID.dt;
 		
 		end = clock();
 		XPID.dt = YPID.dt = (float)(end - start) / CLOCKS_PER_SEC;
 	}//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-	average_dt = (time_from_beginning/frame_counter);
-	printf("\naverage_time: %.4lf\n", average_dt);
+	//average_dt = (time_from_beginning/frame_counter);
+	//printf("\naverage_time: %.4lf\n", average_dt);
 
 
 //__EXIT ROUTINE __________________________
