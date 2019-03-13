@@ -19,15 +19,15 @@
 //_ Function Declarations _____________________
 
 /* create() **********************************************************************/
-PID_t createPID(float _Kp, float _Kd, float _Ki){
+PID_t createPID(short _Kp, short _Kd, short _Ki, uint16_t setpoint){
     PID_t pid = {
         .Kp         =   _Kp,
         .Ki         =   _Ki,
         .Kd         =   _Kd,
-        .setpoint   =   FRAME_HEIGHT/2,
-        .error      =   0,
+        .setpoint   =   setpoint,
+        .error      =   1,
         .pre_error  =   0,
-        .dt         =   1.00/FPS,
+        .dt         =   0.018,
         .output     =   0,
         .integral   =   0,
         .min        =   MIN_ANGLE,
@@ -76,8 +76,13 @@ inline void makeServoConfig(ServoConfig_t* config, PID_t* XPID, PID_t* YPID, Poi
     config->servoY = (uint16_t)PIDCompute(YPID, ball_pos.y);
 }
 
-//print routine for debugging purpouse
+//print routine for debugging
 void printPID(PID_t pid){
-    printf("\n    err = %lf\n   pre_err = %lf   \n    P+I+D    = %lf",
-            pid.error, pid.pre_error, pid.output);
+    printf("*********************************************\n\
+            error: %d\n\
+            dt:    %.4lf\n\
+            integr:%d\n\
+            output:%d\n*********************************************\n\n",
+            pid.error, pid.dt, pid.integral, pid.output);
+
 }

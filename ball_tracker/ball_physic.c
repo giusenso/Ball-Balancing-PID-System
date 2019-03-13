@@ -24,10 +24,12 @@ Ball createBall(uint16_t _x, uint16_t _y){
 
 /*print Ball instance function for debugging*/
 void printBall(Ball b){
-	printf("\n  ===== Ball ================================= \n");
-	
-
-	printf("  ============================================= \n");
+	printf("\n    ===== Ball ===================== \n");
+	if(b.detected) 	printf("   ||  detect:  yes\n");
+	else 			printf("   ||  detect:  no\n");
+	printf("   ||  x:	%d\n", b.x[0]);
+	printf("   ||  y:	%d\n", b.y[0]);
+	printf("    ================================ \n");
 }
 
 
@@ -36,6 +38,7 @@ void printBall(Ball b){
 bool updateBall(Ball* b, uint16_t _x, uint16_t _y){
 	updatePosVec(b, _x, _y);
 	updateSpeed(b);
+	//if(b->v > MAX_SPEED) frameError(b);
 	updatePhase(b);
 	updatePredictedPos(b);
 

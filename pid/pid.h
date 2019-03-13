@@ -3,7 +3,6 @@
 
 #include "../utils.h"
 
-
 #define   P_MIN   -600
 #define   P_MAX   600
 #define   I_MIN   -150
@@ -13,20 +12,20 @@
 //_ Data ____________________________
 
 typedef struct PID_t{
-    float Kp, Ki, Kd;
-    float setpoint; //px coordinate
-    float error;
-    float pre_error;
+    short Kp, Ki, Kd;
+    uint16_t setpoint; //px coordinate
+    short error;
+    short pre_error;
     float dt;
-    float output;
-    float integral;
+    uint16_t output;
+    short integral;
     uint16_t min, max;
 }PID_t;
 
 
 //_ Function Signature _________________________
 
-PID_t createPID(float Kp, float Kd, float Ki);
+PID_t createPID(short Kp, short Kd, short Ki, uint16_t setpoint);
 
 float PIDCompute(PID_t* pid, uint16_t ball_position);
 

@@ -24,8 +24,8 @@ typedef struct ServoConfig {
 #define   HALF_DEGREE     3.5 *0.000001
 
 #define   MIN_STEP          HALF_DEGREE/PERIOD   //56
-#define   HALF_ANGLE        23500
-#define   ANGLE_OFFSET      5000
+#define   HALF_ANGLE        23200
+#define   ANGLE_OFFSET      5500
 #define	  MAX_ANGLE         HALF_ANGLE+ANGLE_OFFSET
 #define   MIN_ANGLE         HALF_ANGLE-ANGLE_OFFSET
 /*********************************************/
@@ -40,6 +40,7 @@ typedef struct ServoConfig {
 #define     SETPOINT_X          FRAME_WIDTH/2
 #define     SETPOINT_Y          FRAME_HEIGHT/2
 #define     FPS                 15
+#define     MAX_SPEED 50    //max pixels change allowed in one frame
 
 #define     bool        int
 #define     false       0

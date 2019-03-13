@@ -22,7 +22,7 @@ void setSerialAttributes(int fd);
 void encodeConfig(ServoConfig_t* config, uint8_t* buf);
 void decodeConfig(uint8_t* buf, ServoConfig_t* config);
 bool handShake(int* fd);
-void printServoConfig(ServoConfig_t* config);
+void printServoConfig(ServoConfig_t config);
 void printEncodedPack(uint8_t* buf);
 
 

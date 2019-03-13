@@ -32,9 +32,6 @@ int main(int argc, char* argv[]){
 	// Mat Array = [ webcam | masked | HSV ]
 	Mat MATS[3];
 
-	//create slider bars for HSV filtering
-	createTrackbars();
-
 	//initialize camera__________________________
 	VideoCapture capture;
 
@@ -94,29 +91,35 @@ int main(int argc, char* argv[]){
 //________________________________________________
 
 	//initialize write_buffer_______________________
-	uint8_t buf[5] = { 0,0, 0,0, '\n'};
+	uint8_t buf[5] = { 0, 0, 0, 0, '\n'};
 	int bytes_written = 0;
 	printf("# write_buffer allocated\n");
 
 	//create ball instance
 	Ball ball = createBall(0, 0);
-	//printBall(ball);
+	printBall(ball);
 	
 //_ X PID SETUP __________________________________
-	printf("\n# creating PID structs... ");
-    
-    PID_t XPID = createPID(150, 0, 0);
-	PID_t YPID = createPID(100, 0, 0);
+	printf("\n# creating PIDs... ");
+    PID_t XPID = createPID(25, 0, 0, FRAME_WIDTH/2);
+	PID_t YPID = createPID(-25, 0, 0, FRAME_HEIGHT/2);
+	printf("Done. \n");
     printPID(XPID);
 	printPID(YPID);
 
 //________________________________________________
-	//Initialize data structure________________
+	//Initialize data structure
 	ServoConfig_t config = { 
-		.servoX = 0xFFFF,
-		.servoY = 0xFFFF
+		.servoX = HALF_ANGLE,
+		.servoY = HALF_ANGLE
 	};
-	printServoConfig(&config);
+	printServoConfig(config);
+	
+	//Setup servos
+	encodeConfig(&config, buf);
+	bytes_written = write(fd,(void*)buf, sizeof(buf));
+	printf("\n# %d Bytes written to /dev/ttyACM \n", bytes_written);
+//________________________________________________
 
 	/*
 	namedWindow("A", WINDOW_AUTOSIZE);
@@ -133,22 +136,30 @@ int main(int argc, char* argv[]){
 	//imshow(windowName2, OUTPUT);
 	*/
 
-	usleep(2000000); //for debug
-	int global_clock = 0; //global clock
-	printf("\n### All parameters setted, ready to go...\n\n");
+	clock_t start, end;
+	float average_dt = 0.0, time_from_beginning = 0.0;
+	int frame_counter = 0;
 
-	//::: MAIN LOOP :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	char temp;
+	printf("\n### All parameters setted, ready to go...\nPress enter to start\n");
+	scanf("%c", &temp);
+
+	//create slider bars for HSV filtering
+	createTrackbars();
+
+	//:::::::::::::: MAIN LOOP ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 	while(true){
+		start = clock();
 
 		//store image to matrix
 		capture.read(MATS[0]);
-		//fps = capture.get(CV_CAP_PROP_FPS);
 
 		//convert frame from BGR to HSV colorspace
 		cvtColor(MATS[0],MATS[2],COLOR_BGR2HSV);
 
 		//filter HSV image between values and store filtered image to MATS[1]
-		inRange(MATS[2],Scalar(H_MIN,S_MIN,V_MIN),Scalar(H_MAX,S_MAX,V_MAX),MATS[1]);
+		//inRange(MATS[2], Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), MATS[1]);
+		inRange(MATS[2], Scalar(59, 88, 108), Scalar(85, 255, 254), MATS[1]);
 		
 		//eliminate noise and emphasize the filtered object(s)
 		morphOps(MATS[1]);
@@ -157,31 +168,39 @@ int main(int argc, char* argv[]){
 		trackFilteredObject(&ball, MATS[1], MATS[0]);
 
 		//show frames
-		imshow(windowName,  MATS[0]);
-		imshow(windowName2, MATS[1]);
-		//imshow(windowName1, MATS[2]);
+		imshow(windowName,  MATS[0]);	// Camera feed
+		imshow(windowName1, MATS[1]);	// Threshold
+		//imshow(windowName2, MATS[2]);	// HSV
 
+		//printBall(ball);
 		if(ball.detected){
 			//PID compute
-			config.servoX = (uint16_t)PIDCompute(&XPID, ball.x[0]);
-			//config.servoY = (uint16_t)PIDCompute(&YPID, ball.y[0]);
-			
+			//config.servoX = (uint16_t)PIDCompute(&XPID, ball.x[0]);
+			config.servoY = (uint16_t)PIDCompute(&YPID, ball.y[0]);
+			//printPID(XPID);
+			printPID(YPID);
+			//printServoConfig(config);
+
 			//Create Packet
 			encodeConfig(&config, buf);
-			printEncodedPack(buf);
+			//printEncodedPack(buf);
 
 			//Send packet
-			//bytes_written = write(fd,(void*)buf, sizeof(buf));
-			printf("\n	X pulse: %d    |    Y pulse: %d\n", config.servoX, 0);
-			printf("\ncount:%d | #%d Bytes written to /dev/ttyACM \n ____________________________________________\n",
-				global_clock, bytes_written);
-
+			bytes_written = write(fd,(void*)buf, sizeof(buf));
+			//printf("\n# %d Bytes written to /dev/ttyACM \n", bytes_written);
 		}
-		//printBall(ball);
-		global_clock++;
-		if(waitKey(FPS) >= 0) break;
 
-	}//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+		if(waitKey(20) >= 0) break;
+		
+		frame_counter++;
+		time_from_beginning += XPID.dt;
+		
+		end = clock();
+		XPID.dt = YPID.dt = (float)(end - start) / CLOCKS_PER_SEC;
+	}//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+	average_dt = (time_from_beginning/frame_counter);
+	printf("\naverage_time: %.4lf\n", average_dt);
 
 
 //__EXIT ROUTINE __________________________

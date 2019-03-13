@@ -18,7 +18,7 @@ using namespace cv;
 
 //Colors
 const Scalar RED = Scalar(0, 0, 251);
-const Scalar GREEN = Scalar(0, 254, 0);
+const Scalar GREEN = Scalar(24, 244, 0);
 const Scalar BLUE = Scalar(205, 45, 0);
 const Scalar CYAN = Scalar(212,214,44);
 const Scalar ORANGE = Scalar(0, 165, 254);

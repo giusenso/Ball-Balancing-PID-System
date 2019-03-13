@@ -99,9 +99,9 @@ void drawObjectV2(Ball* ball, Mat &frame, bool noise_error){
 
 	if(noise_error){	//////////////////////////////////////
 		rectangle(	frame,
-				Point(SETPOINT_X-202, SETPOINT_Y-202),
-				Point(SETPOINT_X+202, SETPOINT_Y+202),
-				RED, 3, LINE_8, 0);
+					Point(SETPOINT_X-202, SETPOINT_Y-202),
+					Point(SETPOINT_X+202, SETPOINT_Y+202),
+					RED, 3, LINE_8, 0);
 		putText(frame, "TOO MUCH NOISE! ADJUST FILTERS", Point(180,220), 1, 1, RED , 2);
 		return;
 	}
@@ -119,14 +119,14 @@ void drawObjectV2(Ball* ball, Mat &frame, bool noise_error){
 		rectangle(	frame,
 					Point(SETPOINT_X-TOLLERANCE, SETPOINT_Y-TOLLERANCE),
 					Point(SETPOINT_X+TOLLERANCE, SETPOINT_Y+TOLLERANCE),
-					ORANGE, 1, LINE_4, 0);
+					ORANGE, 2, LINE_4, 0);
 
 
 		//draw ball lines for position spot
 		rectangle(	frame,
-					Point(ball->x[0]-30, ball->y[0]-30),
-					Point(ball->x[0]+30, ball->y[0]+30),
-					GREEN, 2, LINE_8, 0);
+					Point(ball->x[0]-28, ball->y[0]-28),
+					Point(ball->x[0]+28, ball->y[0]+28),
+					GREEN, 1, LINE_8, 0);
 
 		//draw velocity arrow
 		if (ball->v > 2.0){
@@ -216,6 +216,7 @@ void trackFilteredObject(Ball* ball, Mat threshold, Mat &cameraFeed){
 		}
 		else{
 			noise_error = true;
+			*ball = createBall(0, 0);
 		}
 	}
 	else{

@@ -85,6 +85,7 @@ void encodeConfig(ServoConfig_t* config, uint8_t* buf){
 	buf[4] = '\n';
 }
 //-----------------------------------------
+/*
 bool handShake(int* fd){	//to be tested
 	printf("\n HANDSHACKING: ");
 	int i, j, bytes_written, bytes_read;
@@ -109,20 +110,20 @@ bool handShake(int* fd){	//to be tested
 	usleep(250000);
 	return true;
 }
+*/
 //-----------------------------------------
-void printServoConfig(ServoConfig_t* config){
-	printf("\n	 ============ ServoConfig(%d) ============= \n", (int)sizeof(ServoConfig_t));
-	printf("	||	servoX:		%d	0x%02X	 ||\n", config->servoX, config->servoX);
-	printf("	||	servoY:		%d	0x%02X	 ||\n", config->servoY, config->servoY);
-	printf("	 ========================================= \n");
+void printServoConfig(ServoConfig_t config){
+	printf("\n   ======================================\n");
+	printf("  |  servoX: %d   ||   servoY: %d  |\n", config.servoX, config.servoY);
+	printf("   ======================================\n");
 }
 //-----------------------------------------
 void printEncodedPack(uint8_t* buf){
-	printf("\n	 =========================================\n	|");
+	printf("\n   =========================================\n  |");
 	printf(" 0x%02X  |", buf[0]);
 	printf(" 0x%02X  ||", buf[1]);
 	printf(" 0x%02X  |", buf[2]);
 	printf(" 0x%02X  ||", buf[3]);
 	printf(" 0x%02X  |", buf[4]);
-	printf("\n	 =========================================\n");
+	printf("\n   =========================================\n");
 }

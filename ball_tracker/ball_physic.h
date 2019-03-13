@@ -18,6 +18,7 @@
 Ball createBall(uint16_t _x, uint16_t _y);
 void printBall(Ball b);
 bool updateBall(Ball* b, uint16_t _x, uint16_t _y);
+void frameError(Ball* b);
 
 inline void updatePosVec(Ball* b, uint16_t _x, uint16_t _y){
     __m128i v = _mm_loadu_si128( (const __m128i*)((b->x)-1) );
@@ -47,7 +48,6 @@ inline void updatePos(Ball* b, uint16_t _x, uint16_t _y){
 	b->y[2] = b->y[1];
 	b->y[1] = b->y[0];
 	b->y[0] = _y;
-
 }
 
 
@@ -55,6 +55,13 @@ inline void updateSpeed(Ball* b){
 	b->dx = b->x[0] - b->x[1];	// x component
 	b->dy = b->y[0] - b->y[1];	// y component
 	b->v = fabsf(sqrt( pow(b->dx,2) + pow(b->dy,2) ));
+}
+
+//error procedure
+inline void frameError(Ball* b){
+	b->x[0] = b->fx;
+	b->y[0] = b->fy;
+	updateSpeed(b);
 }
 
 inline void updatePhase(Ball* b){
