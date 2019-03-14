@@ -59,13 +59,11 @@ float PIDCompute(PID_t* pid, uint16_t ball_position) {
 
     //Integral: update and filter
     pid->integral += pid->error * pid->dt;
-    if      (pid->integral>100) pid->integral = 100;
-    else if (pid->integral<-100) pid->integral = -100;
+    pid->integral = saturationFilter(pid->integral, -100, +100); 
 
     //Derivative: Update and filter
-    short filtered_dp = smoothingFilter(ball_position, 200);
-    if      (filtered_dp > 150) filtered_dp = 150;   
-    else if (filtered_dp < -150) filtered_dp = -150;
+    short filtered_dp = smoothingFilter(ball_position, 150);
+    filtered_dp = saturationFilter(filtered_dp, -100, +100);
 
     //output
     pid->output =
@@ -75,8 +73,7 @@ float PIDCompute(PID_t* pid, uint16_t ball_position) {
             pid->Kd * (filtered_dp/pid->dt);
     
 
-    if(pid->output<MIN_ANGLE) pid->output = MIN_ANGLE;
-    else if(pid->output>MAX_ANGLE) pid->output = MAX_ANGLE;
+    pid->output = saturationFilter(pid->output, MIN_ANGLE, MAX_ANGLE);
 
     return pid->output;
 }
@@ -87,11 +84,19 @@ inline short smoothingFilter(uint16_t* pos, uint16_t T){
     short dp = pos[0] - pos[1];
     if(dp > T || dp < -T) return (pos[1]-pos[2]);
     else{
-        return dp * 0.5 +
-        (pos[1]-pos[2]) * 0.3 +
+        return dp * 0.45 +
+        (pos[1]-pos[2]) * 0.25 +
         (pos[2]-pos[3]) * 0.15 +
-        (pos[3]-pos[4]) * 0.05;
-    }
+        (pos[3]-pos[4]) * 0.1  +
+        (pos[4]-pos[5]) * 0.05;
+    } 
+}
+
+// Correct saturated values
+inline short saturationFilter(short value , short T_MIN, short T_MAX){
+    if (value <= T_MIN) return T_MIN;
+    if (value >= T_MAX) return T_MAX;
+    else return value;
 }
 //_________________________________________________________________________
 //print routine for debugging

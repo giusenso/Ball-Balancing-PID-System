@@ -30,6 +30,10 @@ PID_t createPID(short Kp, short Ki, short Kd, uint16_t setpoint, bool mode);
 
 float PIDCompute(PID_t* pid, uint16_t ball_position);
 
+//filters
+short smoothingFilter(uint16_t* pos, uint16_t T);
+short saturationFilter(short value , short T_MIN, short T_MAX);
+
 void printPID(PID_t pid);
 
 
