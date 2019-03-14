@@ -59,34 +59,41 @@ float PIDCompute(PID_t* pid, uint16_t ball_position) {
 
     //Integral: update and filter
     pid->integral += pid->error * pid->dt;
-    if (pid->integral>100) pid->integral = 100;
-    else if(pid->integral<-100) pid->integral = -100;
+    if      (pid->integral>100) pid->integral = 100;
+    else if (pid->integral<-100) pid->integral = -100;
 
     //Derivative: Update and filter
-    short D = ((pid->error - pid->pre_error)/pid->dt);
-    if (D>2000) D=2000;
-    else if (D<-2000) D=-2000;
+    short filtered_dp = smoothingFilter(ball_position, 200);
+    if      (filtered_dp > 150) filtered_dp = 150;   
+    else if (filtered_dp < -150) filtered_dp = -150;
 
     //output
     pid->output =
             HALF_ANGLE +
             pid->Kp * pid->error +
             pid->Ki * pid->integral + 
-            pid->Kd * D;
+            pid->Kd * (filtered_dp/pid->dt);
     
 
-    if(pid->output<MIN_ANGLE) pid->output=MIN_ANGLE;
-    else if(pid->output>MAX_ANGLE) pid->output=MAX_ANGLE;
+    if(pid->output<MIN_ANGLE) pid->output = MIN_ANGLE;
+    else if(pid->output>MAX_ANGLE) pid->output = MAX_ANGLE;
 
     return pid->output;
 }
-
-//this inline function do all the work
-inline void makeServoConfig(ServoConfig_t* config, PID_t* XPID, PID_t* YPID, Point_t ball_pos){
-    config->servoX = (uint16_t)PIDCompute(XPID, ball_pos.x);
-    config->servoY = (uint16_t)PIDCompute(YPID, ball_pos.y);
+//_________________________________________________________________________
+//this filter return dPosition smoothed
+//[T is the threshold in terms of max deviation allowed]
+inline short smoothingFilter(uint16_t* pos, uint16_t T){
+    short dp = pos[0] - pos[1];
+    if(dp > T || dp < -T) return (pos[1]-pos[2]);
+    else{
+        return dp * 0.5 +
+        (pos[1]-pos[2]) * 0.3 +
+        (pos[2]-pos[3]) * 0.15 +
+        (pos[3]-pos[4]) * 0.05;
+    }
 }
-
+//_________________________________________________________________________
 //print routine for debugging
 void printPID(PID_t pid){
     printf("*********************************************\n\
