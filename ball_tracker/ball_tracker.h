@@ -1,11 +1,11 @@
-#ifndef BALL_TRACKER_H
-#define BALL_TRACKER_H
+#ifndef BALLTRACKER_H
+#define BALLTRACKER_H
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui.hpp>
-#include "../utils.h"
+
 #include "../pid/pid.h"
-#include "ball.h"
+#include "ball_physic.h"
 
 using namespace cv;
 

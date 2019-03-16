@@ -6,13 +6,8 @@
 *											*
 *********************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
 
 #include "ball_tracker.h"
-#include "ball_physic.h"
 
 int H_MIN = 0;
 int H_MAX = 256;

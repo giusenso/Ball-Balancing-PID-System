@@ -1,3 +1,4 @@
+
 # Ball Balancing PID Systems 
 
 Hardware:
@@ -9,8 +10,7 @@ Hardware:
 Language: C/C++
 Additional libs: OpenCV 3.4.1
 
-***Those modules are designed to be modularly.
-In every module there is a testing unit ***
+*** This project is designed to be modular. Every module can work stand-alone with it's own testing unit. ***
 
 [1] Computer Vision Module: acquire ball position using OpenCV libs.
 

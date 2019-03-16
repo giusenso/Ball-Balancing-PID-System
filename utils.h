@@ -3,6 +3,13 @@
 #define UTILS_H
 
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <errno.h>
+#include <unistd.h>  /* UNIX Standard Definitions			*/
+#include <string.h>
+
 
 //_ Data Structure _______________________
 
@@ -46,10 +53,6 @@ typedef struct ServoConfig {
 #define     false       0
 #define     true        1
 
-
-inline float radiansToDegree(float radians) {
-    return radians * (180.0 / PI);
-}
 
 
 #endif

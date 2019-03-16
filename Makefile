@@ -1,27 +1,24 @@
-#Makefile for testing
-                                   
-HEADERS = ball_tracker/ball_tracker.h serial_port/serial_port.h pid/pid.h
+CPPFLAGS = -std=c++11 -g -Wall -ggdb3
+OPENCV = `pkg-config --cflags --libs opencv`
 
+app: main.o ball_tracker.o pid.o serial.o
+	g++ -o app main.o ball_tracker.o pid.o serial.o
 
-test: test.o ball_tracker.o serial_port.o pid.o
-	g++ -o "$@" test.o ball_tracker.o serial_port.o pid.o
+main.o: main.cpp ball_tracker/ball_tracker.h pid/pid.h serial/serial.h
+	g++ $(CPPFLAGS) -c main.cpp $(OPENCV)
 
-test.o: test.c $(HEADERS)
-	g++ -c ball_tracker.c serial_port.c pid.c test.c
-        
-ball_tracker/ball_tracker.o: ball_tracker/ball_tracker.c ball_tracker/ball_tracker.h
-	g++ -c ball_tracker/ball_tracker.c `pkg-config --cflags --libs opencv`
+ball_tracker.o: ball_tracker/ball_tracker.cpp ball_tracker/ball_physic.h
+	g++ $(CPPFLAGS) -c ball_tracker/ball_tracker.cpp $(OPENCV)
 
-serial_port/serial_port.o: serial_port.c serial_port.h
-	gcc -c serial_port/serial_port.c
+ball_physic.o: ball_tracker/ball_physic.c ball_tracker/ball_physic.h
+	gcc -c -lm ball_tracker/ball_physic.c
 
-pid/pid.o: pid.c pid.h
+pid.o: pid/pid.c pid/pid.h
 	gcc -c pid/pid.c
+
+serial.o: serial/serial.c serial/serial.h
+	gcc -c serial/serial.c
 
 
 clean:
-	-rm -f ball_tracker/ball_tracker.o        
-	-rm -f serial_port/serial_port.o
-	-rm -f pid/pid.o
-	-rm -f test.o
-	-rm -f test
+	-rm -f *.o

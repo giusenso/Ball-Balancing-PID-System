@@ -1,12 +1,14 @@
 CC = gcc
 
-test: test.c pid.c
-	$(CC) -Wall -g -o "$@" test.c pid.c
+all: test
 
-test.o: test.c pid.h
-	$(CC) -c test.c pid.c
+test: test.o pid.o
+	$(CC) -Wall -g pid.o test.o -o test
 
-pid.o: pid.c pid.h ../utils.h
+test.o: test.c
+	$(CC) -c test.c
+
+pid.o: pid.c
 	$(CC) -lm -c pid.c
 
 

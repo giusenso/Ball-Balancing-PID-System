@@ -48,22 +48,23 @@ PID_t createPID(short _Kp, short _Ki, short _Kd, uint16_t setpoint, bool mode){
  **********************************************************************************/
 //  (pid, ball) ==> P+I+D
 
-float PIDCompute(PID_t* pid, uint16_t ball_position) {
+float PIDCompute(PID_t* pid, uint16_t* ball_pos) {
     
     //set old err
     pid->pre_error = pid->error;
 
     //compute new error
-    if (!pid->inverted_mode) pid->error = (pid->setpoint-ball_position);
-    else pid->error = (ball_position-pid->setpoint);
+    if (!pid->inverted_mode) pid->error = (pid->setpoint - ball_pos[0]);
+    else pid->error = (ball_pos[0] - pid->setpoint);
 
     //Integral: update and filter
     pid->integral += pid->error * pid->dt;
     pid->integral = saturationFilter(pid->integral, -100, +100); 
 
     //Derivative: Update and filter
-    short filtered_dp = smoothingFilter(ball_position, 150);
-    filtered_dp = saturationFilter(filtered_dp, -100, +100);
+    short filtered_dp = smoothingFilter(ball_pos, 80);
+    filtered_dp = saturationFilter(filtered_dp, -50, +50);
+    //printf("\nfiltered_dp: %d\n" ,filtered_dp);
 
     //output
     pid->output =
@@ -84,11 +85,13 @@ inline short smoothingFilter(uint16_t* pos, uint16_t T){
     short dp = pos[0] - pos[1];
     if(dp > T || dp < -T) return (pos[1]-pos[2]);
     else{
-        return dp * 0.45 +
-        (pos[1]-pos[2]) * 0.25 +
-        (pos[2]-pos[3]) * 0.15 +
-        (pos[3]-pos[4]) * 0.1  +
-        (pos[4]-pos[5]) * 0.05;
+        return (dp +
+        (pos[1]-pos[2]) +
+        (pos[2]-pos[3]) +
+        (pos[3]-pos[4]) +
+        (pos[4]-pos[5]) +
+        (pos[5]-pos[6]) +
+        (pos[6]-pos[7])) / 7;
     } 
 }
 
@@ -103,12 +106,11 @@ inline short saturationFilter(short value , short T_MIN, short T_MAX){
 void printPID(PID_t pid){
     printf("*********************************************\n\
             KP = %d , Ki = %d, KD = %d \n\
-            D = %lf\n\
             error: %d\n\
             dt:    %.4lf\n\
             integr:%d\n\
             output:%d\n*********************************************\n\n",
-            pid.Kp, pid.Ki, pid.Kd, pid.Kd * ((pid.error-pid.pre_error)/pid.dt),
+            pid.Kp, pid.Ki, pid.Kd,
             pid.error, pid.dt, pid.integral, pid.output);
 
 }
