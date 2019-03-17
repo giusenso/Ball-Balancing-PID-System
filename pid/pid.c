@@ -19,7 +19,7 @@
 //_ Function Declarations _____________________
 
 /* create() **********************************************************************/
-PID_t createPID(short _Kp, short _Ki, short _Kd, uint16_t setpoint, bool mode){
+PID_t createPID(float _Kp, float _Ki, float _Kd, uint16_t setpoint, bool mode){
     PID_t pid = {
         .Kp         =   _Kp,
         .Ki         =   _Ki,
@@ -48,7 +48,7 @@ PID_t createPID(short _Kp, short _Ki, short _Kd, uint16_t setpoint, bool mode){
  **********************************************************************************/
 //  (pid, ball) ==> P+I+D
 
-float PIDCompute(PID_t* pid, uint16_t* ball_pos) {
+float PIDCompute(PID_t* pid, uint16_t* ball_pos, short smooth_dp) {
     
     //set old err
     pid->pre_error = pid->error;
@@ -62,10 +62,9 @@ float PIDCompute(PID_t* pid, uint16_t* ball_pos) {
     pid->integral = saturationFilter(pid->integral, -100, +100); 
 
     //Derivative: Update and filter
-    short filtered_dp = smoothingFilter(ball_pos, 80);
-    filtered_dp = saturationFilter(filtered_dp, -50, +50);
-    //printf("\nfiltered_dp: %d\n" ,filtered_dp);
-
+    short filtered_dp = saturationFilter(smooth_dp, -50, +50);
+    //printf("filtered_dp = %d\n\n", filtered_dp);
+    
     //output
     pid->output =
             HALF_ANGLE +
@@ -78,22 +77,20 @@ float PIDCompute(PID_t* pid, uint16_t* ball_pos) {
 
     return pid->output;
 }
+
+
 //_________________________________________________________________________
+/*
 //this filter return dPosition smoothed
 //[T is the threshold in terms of max deviation allowed]
 inline short smoothingFilter(uint16_t* pos, uint16_t T){
     short dp = pos[0] - pos[1];
     if(dp > T || dp < -T) return (pos[1]-pos[2]);
     else{
-        return (dp +
-        (pos[1]-pos[2]) +
-        (pos[2]-pos[3]) +
-        (pos[3]-pos[4]) +
-        (pos[4]-pos[5]) +
-        (pos[5]-pos[6]) +
-        (pos[6]-pos[7])) / 7;
+        return smooth_dp;
     } 
 }
+*/
 
 // Correct saturated values
 inline short saturationFilter(short value , short T_MIN, short T_MAX){
@@ -105,7 +102,7 @@ inline short saturationFilter(short value , short T_MIN, short T_MAX){
 //print routine for debugging
 void printPID(PID_t pid){
     printf("*********************************************\n\
-            KP = %d , Ki = %d, KD = %d \n\
+            KP = %.2lf , Ki = %.2lf, KD = %.2lf \n\
             error: %d\n\
             dt:    %.4lf\n\
             integr:%d\n\

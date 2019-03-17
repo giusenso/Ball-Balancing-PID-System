@@ -18,12 +18,12 @@ using namespace cv;
 #define     MAX_OBJECT_AREA     FRAME_HEIGHT*FRAME_WIDTH/5
 
 //Colors
-const Scalar RED = Scalar(0, 0, 251);
-const Scalar GREEN = Scalar(24, 244, 0);
-const Scalar BLUE = Scalar(205, 45, 0);
-const Scalar CYAN = Scalar(212,214,44);
-const Scalar ORANGE = Scalar(0, 165, 254);
-const Scalar DARK_GREEN = Scalar(35,149,22);
+const Scalar RED =          Scalar(0, 0, 251);
+const Scalar GREEN =        Scalar(24, 244, 0);
+const Scalar BLUE =         Scalar(205, 45, 0);
+const Scalar CYAN =         Scalar(212,214,44);
+const Scalar ORANGE =       Scalar(0, 165, 254);
+const Scalar DARK_GREEN =   Scalar(35,149,22);
 
 //initial min and max HSV filter values.
 //these will be changed using trackbars
@@ -56,35 +56,18 @@ typedef struct mouseParams{
 
 void on_trackbar( int, void* );
 String intToString(int number);
+
 void createTrackbars();
 void createGainTrackbars(PID_t* XPID, PID_t* YPID);
-void drawObjectV1(int x, int y, Mat &frame);
-void drawObjectV2(Ball* b, Mat &frame, bool noise_error);
+
+void drawObjectV2(Ball b, Mat &frame, bool noise_error);
 void morphOps(Mat &thresh);
 void trackFilteredObject(Ball* b, Mat threshold, Mat &cameraFeed);
+
 void circleDetector(Mat cameraFeed, Mat threshold);
-void createSquareBox(Mat cameraFeed, Mat threshold);
 void callBackFunc(int event, int x, int y, int flags, void* param);
 void printHSV(mouseParams mp);
 
-
-inline Rect buildBox(Ball* b){
-
-    //prepare top left corner of the box
-	short tl_x = b->x[0] - BOX_SIZE/2;
-    if (tl_x >= FRAME_WIDTH-BOX_SIZE) tl_x =
-        FRAME_WIDTH-BOX_SIZE;
-    if(tl_x <=0) tl_x = 0;
-
-	short tl_y = b->y[0] - BOX_SIZE/2;
-    if (tl_y >= FRAME_HEIGHT-BOX_SIZE) tl_y =
-        FRAME_HEIGHT-BOX_SIZE;
-    if(tl_y <=0) tl_y = 0;
-
-    printf("\nBOX\ntx %d\nty %d\nbx %d\nby %d\n",
-      tl_x, tl_y, tl_x+BOX_SIZE, tl_y+BOX_SIZE);
-    return Rect(tl_x, tl_y, tl_x+BOX_SIZE, tl_y+BOX_SIZE);
-}
 
 
 #endif

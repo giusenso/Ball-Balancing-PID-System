@@ -88,33 +88,9 @@ void createGainTrackbars(PID_t* XPID, PID_t* YPID){
     createTrackbar( "Y_Kd", gainTrackbarWindowName, (int*)&(YPID->Kd), D_MAX, on_trackbar );
 }
 
-//_ Draw version 1 ____________________________
-void drawObjectV1(int x, int y, Mat &frame){
-	//Draw version 1
-
-	circle(frame,Point(x,y),24,Scalar(0,255,0),3);
-	//vertical line
-    if(y-25>0)
-    line(frame,Point(x,0),Point(x,y-25),Scalar(0,255,0),2);
-    else line(frame,Point(x,y),Point(x,0),Scalar(0,255,0),2);
-    if(y+25<FRAME_HEIGHT)
-    line(frame,Point(x,y),Point(x,y+25),Scalar(0,255,0),2);
-    else line(frame,Point(x,y),Point(x,FRAME_HEIGHT),Scalar(0,255,0),2);
-
-	//orizzontal line
-    if(x-25>0)
-    line(frame,Point(x,y),Point(x-25,y),Scalar(0,255,0),2);
-    else line(frame,Point(x,y),Point(0,y),Scalar(0,255,0),2);
-    if(x+25<FRAME_WIDTH)
-    line(frame,Point(x,y),Point(x+25,y),Scalar(0,255,0),2);
-    else line(frame,Point(x,y),Point(FRAME_WIDTH,y),Scalar(0,255,0),2);
-
-	putText(frame,intToString(x)+","+intToString(y),Point(x,y+30),1,1,Scalar(0,255,0),2);
-
-}
 
 //_ Draw version 2 ____________________________
-void drawObjectV2(Ball* ball, Mat &frame, bool noise_error){
+void drawObjectV2(Ball ball, Mat &frame, bool noise_error){
 
 	if(noise_error){	//////////////////////////////////////
 		rectangle(	frame,
@@ -125,7 +101,7 @@ void drawObjectV2(Ball* ball, Mat &frame, bool noise_error){
 		return;
 	}
 
-	if (ball->detected){	//////////////////////////////////////
+	if (ball.detected){	//////////////////////////////////////
 			//draw square area
 		rectangle(	frame,
 					Point(SETPOINT_X-202, SETPOINT_Y-202),
@@ -143,23 +119,25 @@ void drawObjectV2(Ball* ball, Mat &frame, bool noise_error){
 
 		//draw ball lines for position spot
 		rectangle(	frame,
-					Point(ball->x[0]-28, ball->y[0]-28),
-					Point(ball->x[0]+28, ball->y[0]+28),
+					Point(ball.x[0]-28, ball.y[0]-28),
+					Point(ball.x[0]+28, ball.y[0]+28),
 					GREEN, 1, LINE_8, 0);
 
 		//draw velocity arrow
-		if (ball->v > 2.0){
-			arrowedLine(frame, Point(ball->x[0], ball->y[0]), Point(ball->fx, ball->fy) , RED, 2, 8, 0 , 0.4);
-		}
+		arrowedLine(frame, 	Point(ball.x[0] , ball.y[0]),
+							Point(ball.x[0]+ball.smooth_dx+ball.smooth_dx ,
+							ball.y[0]+ball.smooth_dy+ball.smooth_dy),
+							RED, 2, 8, 0 , 0.4);
+		
 		//draw previous positions
 		for (int i=1 ; i<8 ; i++){
-			circle( frame, Point(ball->x[i], ball->y[i]), 2, ORANGE, -1, 8, 0 );
+			circle( frame, Point(ball.x[i], ball.y[i]), 2, ORANGE, -1, 8, 0 );
 		}
 		//display ball info
-		line(frame, Point(ball->x[0], 0), Point(ball->x[0], FRAME_HEIGHT), BLUE, 1);
-		line(frame, Point(0, ball->y[0]), Point(FRAME_WIDTH, ball->y[0]), BLUE, 1);
-		putText(frame,intToString(ball->y[0]),Point(ball->x[0]+2,ball->y[0]-42),1,1,BLUE,2);
-		putText(frame,intToString(ball->x[0]),Point(ball->x[0]+40,ball->y[0]+14),1,1,BLUE,2);
+		line(frame, Point(ball.x[0], 0), Point(ball.x[0], FRAME_HEIGHT), BLUE, 1);
+		line(frame, Point(0, ball.y[0]), Point(FRAME_WIDTH, ball.y[0]), BLUE, 1);
+		putText(frame,intToString(ball.y[0]),Point(ball.x[0]+2,ball.y[0]-42),1,1,BLUE,2);
+		putText(frame,intToString(ball.x[0]),Point(ball.x[0]+40,ball.y[0]+14),1,1,BLUE,2);
 		return;
 	}
 
@@ -228,14 +206,14 @@ void trackFilteredObject(Ball* ball, Mat threshold, Mat &cameraFeed){
                 if(area>MIN_OBJECT_AREA && area<MAX_OBJECT_AREA && area>refArea){
 					ball->detected = true;
 					//circleDetector(cameraFeed, threshold);
-					updateBall(ball, moment.m10/area, moment.m01/area);
+					updateBall_VEC(ball, moment.m10/area, moment.m01/area);
 					refArea = area;
 				}
 			}
 		}
 		else{
 			noise_error = true;
-			*ball = createBall(0, 0);
+			*ball = createBall(FRAME_WIDTH/2, FRAME_HEIGHT/2);
 		}
 	}
 	else{
@@ -243,7 +221,7 @@ void trackFilteredObject(Ball* ball, Mat threshold, Mat &cameraFeed){
 		*ball = createBall(ball->x[0], ball->y[0]);
 	}
 
-	drawObjectV2( ball, cameraFeed, noise_error);
+	drawObjectV2(*ball, cameraFeed, noise_error);
 
 	//release memory
 	temp.release();
@@ -269,13 +247,6 @@ void circleDetector(Mat cameraFeed, Mat threshold){
 		circle( cameraFeed, center, radius+1, GREEN, 2, 8, 0 );  // circle outline
   	}
 	gray.release();
-}
-
-//create square box and find for ball only here
-void createSquareBox(Ball* b, Mat cameraFeed, Mat threshold){
-	//delete from threshol all out of box point
-	//box is centered in (fx, fy)
-
 }
 
 void callBackFunc(int event, int x, int y, int flags, void* param){

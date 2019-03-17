@@ -10,12 +10,10 @@ Ball createBall(uint16_t _x, uint16_t _y){
 		.detected = false,
 		.x 		= { _x,_x,_x,_x,_x,_x,_x,_x },
 		.y 		= { _y,_y,_y,_y,_y,_y,_y,_y },
-		.dx 	= 0,
-		.dy 	= 0,
-		.fx 	= 0,
-		.fy 	= 0,
-		.v 		= 0,
-		.phi 	= 0
+		.dx 	= { 0,0,0,0,0,0,0,0 },
+		.dy 	= { 0,0,0,0,0,0,0,0 },
+		.smooth_dx 	= 0,
+		.smooth_dy 	= 0
 	};
 	return b;
 }
@@ -30,13 +28,15 @@ void printBall(Ball b){
 	printf("    ================================ \n");
 }
 
+
+////////////////////////////////////////////////////////////////
 inline void updatePosVec(Ball* b, uint16_t _x, uint16_t _y){
-    __m128i v = _mm_loadu_si128( (const __m128i*)((b->x)-1) );
-    _mm_storeu_si128( (__m128i*)(b->x), v);
+    VEC v = LOAD( (const VEC*)((b->x)-1) );
+    STORE( (VEC*)(b->x), v);
     b->x[0] = _x;
 
-    v = _mm_loadu_si128((const __m128i*)((b->y)-1));
-    _mm_storeu_si128( (__m128i*)(b->y), v);
+    v = LOAD((const VEC*)((b->y)-1));
+    STORE( (VEC*)(b->y), v);
     b->y[0] = _y;
 }
 
@@ -60,41 +60,131 @@ inline void updatePos(Ball* b, uint16_t _x, uint16_t _y){
 	b->y[0] = _y;
 }
 
+////////////////////////////////////////////////////////////////
+
+inline void updateSpeedVec(Ball* b) {
+
+	VEC v = LOAD( (const VEC*)((b->dx)-1) );
+    STORE( (VEC*)(b->dx), v);
+	b->dx[0] = b->x[0] - b->x[1];
+
+	b->smooth_dx =
+		(b->dx[0] * mask[0] + 
+		b->dx[1] * mask[1] + 
+		b->dx[2] * mask[2] + 
+		b->dx[3] * mask[3] + 
+		b->dx[4] * mask[4] + 
+		b->dx[5] * mask[5] + 
+		b->dx[6] * mask[6] + 
+		b->dx[7] * mask[7]) / 100;
+
+
+    v = LOAD( (const VEC*)((b->dy)-1) );
+    STORE( (VEC*)(b->dy), v);
+	b->dy[0] = b->y[0] - b->y[1];
+		
+	b->smooth_dy =
+		(b->dy[0] * mask[0] + 
+		b->dy[1] * mask[1] + 
+		b->dy[2] * mask[2] + 
+		b->dy[3] * mask[3] + 
+		b->dy[4] * mask[4] + 
+		b->dy[5] * mask[5] + 
+		b->dy[6] * mask[6] + 
+		b->dy[7] * mask[7]) / 100;
+}
 
 inline void updateSpeed(Ball* b){
-	b->dx = b->x[0] - b->x[1];	// x component
-	b->dy = b->y[0] - b->y[1];	// y component
-	b->v = fabsf(sqrt( pow(b->dx,2) + pow(b->dy,2) ));
+	b->dx[7] = b->dx[6];
+	b->dx[6] = b->dx[5];
+	b->dx[5] = b->dx[4];
+	b->dx[4] = b->dx[3];
+	b->dx[3] = b->dx[2];
+	b->dx[2] = b->dx[1];
+	b->dx[1] = b->dx[0];
+	b->dx[0] = b->x[0] - b->x[1];
+
+	b->smooth_dx =
+		b->dx[0] * mask[0] + 
+		b->dx[1] * mask[1] + 
+		b->dx[2] * mask[2] + 
+		b->dx[3] * mask[3] + 
+		b->dx[4] * mask[4] + 
+		b->dx[5] * mask[5] + 
+		b->dx[6] * mask[6] + 
+		b->dx[7] * mask[7];
+
+	b->dy[7] = b->dy[6];
+	b->dy[6] = b->dy[5];
+	b->dy[5] = b->dy[4];
+	b->dy[4] = b->dy[3];
+	b->dy[3] = b->dy[2];
+	b->dy[2] = b->dy[1];
+	b->dy[1] = b->dy[0];
+	b->y[0] = b->y[0] - b->y[1];
+		
+	b->smooth_dy =
+		b->dy[0] * mask[0] + 
+		b->dy[1] * mask[1] + 
+		b->dy[2] * mask[2] + 
+		b->dy[3] * mask[3] + 
+		b->dy[4] * mask[4] + 
+		b->dy[5] * mask[5] + 
+		b->dy[6] * mask[6] + 
+		b->dy[7] * mask[7];
+
 }
 
-//error procedure
-inline void frameError(Ball* b){
-	b->x[0] = b->fx;
-	b->y[0] = b->fy;
-	updateSpeed(b);
-}
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
-inline void updatePhase(Ball* b){
-	if(b->dx >= 1 || b->dx <= -1) b->phi = radiansToDegree(atan2(b->dy, b->dx));
-}
-
-inline void updatePredictedPos(Ball* b){
-	b->fx = b->dx + b->x[0];
-	b->fy = b->dy + b->y[0];
-}
-
-/*update position and compute new velocity and direction
+// ALL IN ONE
+/*update position and compute new speed
 	{this function is called in trackFilteredObject()}	*/
-bool updateBall(Ball* b, uint16_t _x, uint16_t _y){
-	updatePosVec(b, _x, _y);
-	updateSpeed(b);
-	//if(b->v > MAX_SPEED) frameError(b);
-	updatePhase(b);
-	updatePredictedPos(b);
+void updateBall_VEC(Ball* b, uint16_t _x, uint16_t _y){
+	
+	//update x pos //////////////////////////////////////////////
+	VEC vpos = LOAD( (const VEC*)((b->x)-1) );
+    STORE( (VEC*)(b->x), vpos);
+    b->x[0] = _x;
 
-	if (b->v==0) return false;
-	else return true;
+	//update x speed ////////////////////////////////////////////
+	VEC vspeed = LOAD( (const VEC*)((b->dx)-1) );
+    STORE( (VEC*)(b->dx), vspeed);
+	b->dx[0] = b->x[0] - b->x[1];
+
+	b->smooth_dx =
+		b->dx[0] * mask[0] + 
+		b->dx[1] * mask[1] + 
+		b->dx[2] * mask[2] + 
+		b->dx[3] * mask[3] + 
+		b->dx[4] * mask[4] + 
+		b->dx[5] * mask[5] + 
+		b->dx[6] * mask[6];
+
+
+	//update y pos ////////////////////////////////////////////
+    vpos = LOAD((const VEC*)((b->y)-1));
+    STORE( (VEC*)(b->y), vpos );
+    b->y[0] = _y;
+
+	//update y speed //////////////////////////////////////////
+    vspeed = LOAD( (const VEC*)((b->dy)-1) );
+    STORE( (VEC*)(b->dy), vspeed );
+	b->dy[0] = b->y[0] - b->y[1];
+		
+	b->smooth_dy =
+		b->dy[0] * mask[0] + 
+		b->dy[1] * mask[1] + 
+		b->dy[2] * mask[2] + 
+		b->dy[3] * mask[3] + 
+		b->dy[4] * mask[4] + 
+		b->dy[5] * mask[5] + 
+		b->dy[6] * mask[6];
+
 }
+
+
 
 inline float radiansToDegree(float radians) {
     return radians * (180.0 / PI);

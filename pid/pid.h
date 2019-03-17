@@ -12,8 +12,8 @@
 //_ Data ____________________________
 
 typedef struct PID_t{
-    short Kp, Ki, Kd;
-    uint16_t setpoint; //px coordinate
+    float Kp, Ki, Kd;
+    uint16_t setpoint;
     short error;
     short pre_error;
     float dt;
@@ -26,9 +26,9 @@ typedef struct PID_t{
 
 //_ Function Signature _________________________
 
-PID_t createPID(short Kp, short Ki, short Kd, uint16_t setpoint, bool mode);
+PID_t createPID(float Kp, float Ki, float Kd, uint16_t setpoint, bool mode);
 
-float PIDCompute(PID_t* pid, uint16_t* ball_pos);
+float PIDCompute(PID_t* pid, uint16_t* ball_pos, short smooth_dp);
 
 //filters
 short smoothingFilter(uint16_t* pos, uint16_t T);
