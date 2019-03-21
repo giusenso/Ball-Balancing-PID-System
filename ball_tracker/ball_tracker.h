@@ -21,9 +21,10 @@ using namespace cv;
 const Scalar RED =          Scalar(0, 0, 251);
 const Scalar GREEN =        Scalar(24, 244, 0);
 const Scalar BLUE =         Scalar(205, 45, 0);
-const Scalar CYAN =         Scalar(212,214,44);
+const Scalar CYAN =         Scalar(212, 214, 44);
 const Scalar ORANGE =       Scalar(0, 165, 254);
-const Scalar DARK_GREEN =   Scalar(35,149,22);
+const Scalar DARK_GREEN =   Scalar(35, 149, 22);
+const Scalar BLACK =   		Scalar(1, 1, 1);
 
 //initial min and max HSV filter values.
 //these will be changed using trackbars
@@ -61,6 +62,7 @@ void createTrackbars();
 void createGainTrackbars(PID_t* XPID, PID_t* YPID);
 
 void drawObjectV2(Ball b, Mat &frame, bool noise_error);
+void plotSpeed (short* pos, Mat &frame, uint16_t _x, uint16_t _y);
 void morphOps(Mat &thresh);
 void trackFilteredObject(Ball* b, Mat threshold, Mat &cameraFeed);
 

@@ -128,7 +128,7 @@ void drawObjectV2(Ball ball, Mat &frame, bool noise_error){
 							Point(ball.x[0]+ball.smooth_dx+ball.smooth_dx ,
 							ball.y[0]+ball.smooth_dy+ball.smooth_dy),
 							RED, 2, 8, 0 , 0.4);
-		
+
 		//draw previous positions
 		for (int i=1 ; i<8 ; i++){
 			circle( frame, Point(ball.x[i], ball.y[i]), 2, ORANGE, -1, 8, 0 );
@@ -153,8 +153,16 @@ void drawObjectV2(Ball ball, Mat &frame, bool noise_error){
 
 }
 
-void morphOps(Mat &thresh){
+void plotSpeed(short* speed, Mat &frame, uint16_t _x, uint16_t _y){
+	line(frame, Point(x, y), Point(x+100, y), DARK, 2);
+	line(frame, Point(x, y-50), Point(x, y+50), DARK, 2);
 
+	for(int i=0 ; i<7 ; i++){
+		line(frame, Point(x+i*10, pos[i]), Point(x+i*20, pos[i+1]), CYAN, 1);
+	}
+}
+
+void morphOps(Mat &thresh){
 	//create structuring element that will be used to "dilate" and "erode" image.
 
 	//the element chosen here is a 3px by 3px rectangle
@@ -162,8 +170,6 @@ void morphOps(Mat &thresh){
 
     //dilate with larger element so make sure object is nicely visible
 	Mat dilateElement = getStructuringElement( MORPH_RECT,Size(5,5));
-
-	//Mat
 
 	erode(thresh,thresh,erodeElement);
 	erode(thresh,thresh,erodeElement);
