@@ -3,8 +3,8 @@
 
 Hardware:
 - microcontroller: Atmega2560
-- PC
-- Servos:
+- Laptop
+- Servos: DS3218MG 5V-6.8V
 - Battery pack: 6V, 2850maAh
 
 Language: C/C++
