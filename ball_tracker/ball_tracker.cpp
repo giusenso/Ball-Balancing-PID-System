@@ -125,19 +125,22 @@ void drawObjectV2(Ball ball, Mat &frame, bool noise_error){
 
 		//draw velocity arrow
 		arrowedLine(frame, 	Point(ball.x[0] , ball.y[0]),
-							Point(ball.x[0]+ball.smooth_dx+ball.smooth_dx ,
-							ball.y[0]+ball.smooth_dy+ball.smooth_dy),
+							Point(ball.x[0]+ball.smooth_dx, ball.y[0]+ball.smooth_dy),
 							RED, 2, 8, 0 , 0.4);
 
 		//draw previous positions
 		for (int i=1 ; i<8 ; i++){
 			circle( frame, Point(ball.x[i], ball.y[i]), 2, ORANGE, -1, 8, 0 );
+
+		plotPos(ball, frame, 522, FRAME_HEIGHT/2);
+
 		}
 		//display ball info
 		line(frame, Point(ball.x[0], 0), Point(ball.x[0], FRAME_HEIGHT), BLUE, 1);
 		line(frame, Point(0, ball.y[0]), Point(FRAME_WIDTH, ball.y[0]), BLUE, 1);
 		putText(frame,intToString(ball.y[0]),Point(ball.x[0]+2,ball.y[0]-42),1,1,BLUE,2);
 		putText(frame,intToString(ball.x[0]),Point(ball.x[0]+40,ball.y[0]+14),1,1,BLUE,2);
+
 		return;
 	}
 
@@ -153,12 +156,17 @@ void drawObjectV2(Ball ball, Mat &frame, bool noise_error){
 
 }
 
-void plotSpeed(short* speed, Mat &frame, uint16_t _x, uint16_t _y){
-	line(frame, Point(x, y), Point(x+100, y), DARK, 2);
-	line(frame, Point(x, y-50), Point(x, y+50), DARK, 2);
+inline void plotPos(Ball b, Mat &frame, uint16_t x, uint16_t y){
+	putText(frame, "X", Point(x+5, y-120), 1, 1, DARK_GREEN , 2);
+	putText(frame, "Y", Point(x+5, y+80), 1, 1, DARK_GREEN , 2);
+	line(frame, Point(x, y-100), Point(x+200, y-100), CYAN, 2);
+	line(frame, Point(x, y+100), Point(x+200, y+100), CYAN, 2);
 
-	for(int i=0 ; i<7 ; i++){
-		line(frame, Point(x+i*10, pos[i]), Point(x+i*20, pos[i+1]), CYAN, 1);
+	for(int i=1 ; i<8 ; i++){
+		line(frame, Point(x+i*10, (y-100+(b.x[i-1]-SETPOINT_X)/3)),
+			Point(x+i*20, (y-100+(b.x[i]-SETPOINT_X)/3)), DARK_GREEN, 2);
+		line(frame, Point(x+i*10, (y+100+(b.y[i-1]-SETPOINT_Y)/3)),
+			Point(x+i*20, (y+100+(b.y[i]-SETPOINT_Y)/3)), DARK_GREEN, 2);
 	}
 }
 

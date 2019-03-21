@@ -62,7 +62,7 @@ void createTrackbars();
 void createGainTrackbars(PID_t* XPID, PID_t* YPID);
 
 void drawObjectV2(Ball b, Mat &frame, bool noise_error);
-void plotSpeed (short* pos, Mat &frame, uint16_t _x, uint16_t _y);
+void plotPos (Ball b, Mat &frame, uint16_t _x, uint16_t _y);
 void morphOps(Mat &thresh);
 void trackFilteredObject(Ball* b, Mat threshold, Mat &cameraFeed);
 

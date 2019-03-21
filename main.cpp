@@ -166,7 +166,7 @@ int main(int argc, char* argv[]){
 
 		//printBall(ball);
 		if(ball.detected){
-			//PID compute
+
 			config.servoX = (uint16_t)PIDCompute(&XPID, ball.x, ball.smooth_dx);
 			config.servoY = (uint16_t)PIDCompute(&YPID, ball.y, ball.smooth_dy);
 			//printPID(XPID);
@@ -174,7 +174,6 @@ int main(int argc, char* argv[]){
 
 			//Create Packet
 			encodeConfig(&config, buf);
-			//printEncodedPack(buf);
 
 			//Send packet
 			bytes_written = write(fd,(void*)buf, sizeof(buf));
