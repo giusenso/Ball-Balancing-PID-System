@@ -5,13 +5,12 @@
 #include <opencv2/highgui.hpp>
 
 #include "../pid/pid.h"
-#include "ball_physic.h"
+//#include "ball_physic.h"
 
 using namespace cv;
 
 #define 	BOX_SIZE			200
-//max number of objects to be detected in frame
-#define     MAX_NUM_OBJECTS     20
+#define     MAX_NUM_OBJECTS     20	//max number of objects to be detected in frame
 
 //minimum and maximum object area
 #define     MIN_OBJECT_AREA     14*14

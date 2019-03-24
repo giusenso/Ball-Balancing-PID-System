@@ -1,8 +1,18 @@
-
 /********************************************
 *	@Author: Giuseppe Sensolini Arra'		*
+*	@Date: 02.2019							*
 *											*
-*		COMPUTER VISION MODULE				*
+*	COMPUTER VISION MODULE					*
+*	libs: opencv 3.4.1						*
+*	task:									*
+*		- detect object with HSV mask		*
+*		- circle detection					*
+*		- mask and PID tracksbars			*
+*		- open camara and get video stream	*
+*		- draw data to windows				*
+*		- Morphological trasformations		*
+*		- Track filtered object 			*
+*		- debug print 						*
 *											*
 *********************************************/
 
@@ -132,10 +142,11 @@ void drawObjectV2(Ball ball, Mat &frame, bool noise_error){
 		for (int i=1 ; i<8 ; i++){
 			circle( frame, Point(ball.x[i], ball.y[i]), 2, ORANGE, -1, 8, 0 );
 
-		plotPos(ball, frame, 522, FRAME_HEIGHT/2);
+		//plotPos(ball, frame, 522, FRAME_HEIGHT/2);
 
 		}
 		//display ball info
+		putText(frame,intToString(ball.y[0]),Point(ball.x[0]+2,ball.y[0]-42),1,1,BLUE,2);
 		line(frame, Point(ball.x[0], 0), Point(ball.x[0], FRAME_HEIGHT), BLUE, 1);
 		line(frame, Point(0, ball.y[0]), Point(FRAME_WIDTH, ball.y[0]), BLUE, 1);
 		putText(frame,intToString(ball.y[0]),Point(ball.x[0]+2,ball.y[0]-42),1,1,BLUE,2);
@@ -170,8 +181,8 @@ inline void plotPos(Ball b, Mat &frame, uint16_t x, uint16_t y){
 	}
 }
 
+//create structuring element that will be used to "dilate" and "erode" image.
 void morphOps(Mat &thresh){
-	//create structuring element that will be used to "dilate" and "erode" image.
 
 	//the element chosen here is a 3px by 3px rectangle
 	Mat erodeElement = getStructuringElement( MORPH_RECT,Size(3,3));
@@ -194,19 +205,16 @@ void morphOps(Mat &thresh){
 
 void trackFilteredObject(Ball* ball, Mat threshold, Mat &cameraFeed){
 	bool noise_error = false;
-	Mat temp;
-	threshold.copyTo(temp);
-	//temp = threshold(buildBox(b));
 
 	//these two vectors needed for output of findContours
 	std::vector< std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;
 
 	//find contours of filtered image using openCV findContours function
-	findContours(temp,contours,hierarchy,CV_RETR_CCOMP,CV_CHAIN_APPROX_SIMPLE );
+	findContours(threshold,contours,hierarchy,CV_RETR_CCOMP,CV_CHAIN_APPROX_SIMPLE );
 
 	//use moments method to find our filtered object
-	double refArea = 0;
+	float refArea = 0;
 
 	if (hierarchy.size() > 0) {
 		int numObjects = hierarchy.size();
@@ -215,30 +223,32 @@ void trackFilteredObject(Ball* ball, Mat threshold, Mat &cameraFeed){
 			for (int index = 0; index >= 0; index = hierarchy[index][0]) {
 
 				Moments moment = moments((cv::Mat)contours[index]);
-				double area = moment.m00;
+				float area = moment.m00;
 
                 if(area>MIN_OBJECT_AREA && area<MAX_OBJECT_AREA && area>refArea){
-					ball->detected = true;
-					//circleDetector(cameraFeed, threshold);
-					updateBall_VEC(ball, moment.m10/area, moment.m01/area);
-					refArea = area;
+					if(ball->detected){
+						//circleDetector(cameraFeed, threshold);
+						updateBall_VEC(ball, (moment.m10/area)+120, (moment.m01/area)+40);
+						refArea = area;
+					}
+					else {
+						*ball = createBall((moment.m10/area)+120,(moment.m01/area)+40);
+						ball->detected = true;
+					}
 				}
 			}
 		}
 		else{
 			noise_error = true;
-			*ball = createBall(FRAME_WIDTH/2, FRAME_HEIGHT/2);
+			//*ball = createBall(FRAME_WIDTH/2, FRAME_HEIGHT/2);
 		}
 	}
 	else{
 		//restore default ball parameters
-		*ball = createBall(ball->x[0], ball->y[0]);
+		ball->detected = false;
 	}
 
 	drawObjectV2(*ball, cameraFeed, noise_error);
-
-	//release memory
-	temp.release();
 }
 
 void circleDetector(Mat cameraFeed, Mat threshold){

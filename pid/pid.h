@@ -2,6 +2,7 @@
 #define PID_H
 
 #include "../utils.h"
+#include "../ball_tracker/ball_physic.h"
 
 #define   P_MIN   0
 #define   P_MAX   40
@@ -14,10 +15,9 @@
 typedef struct PID_t{
     float Kp, Ki, Kd;
     uint16_t setpoint;
-    short error;
-    short pre_error;
+    short error[2];
     float dt;
-    uint16_t output;
+    uint16_t output[2];
     short integral;
     uint16_t min, max;
     bool inverted_mode;
@@ -26,12 +26,11 @@ typedef struct PID_t{
 
 //_ Function Signature _________________________
 
-PID_t createPID(float Kp, float Ki, float Kd, uint16_t setpoint, bool mode);
+PID_t createPID(float Kp, float Ki, float Kd, uint16_t setpoint, bool mode,
+                uint16_t min_angle, uint16_t max_angle);
 
-float PIDCompute(PID_t* pid, uint16_t* ball_pos, short smooth_dp);
+void PIDCompute(PID_t* pidX, PID_t* pidY, Ball ball);
 
-//filters
-short smoothingFilter(uint16_t* pos, uint16_t T);
 short saturationFilter(short value , short T_MIN, short T_MAX);
 
 void printPID(PID_t pid);

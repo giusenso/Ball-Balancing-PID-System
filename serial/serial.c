@@ -1,10 +1,13 @@
 
 /********************************************
 *	@Author: Giuseppe Sensolini Arra'		*
+*	@Date: 01.2019							*
 *											*
 *	SERIAL COMMUNICATION MODULE				*
 *	task:									*
 *		- open serial communication			*
+*		- close serial communication		*
+*		- handshake routine					*
 *		- encode/decode packs				*
 *		- write/read data					*
 *		- debug print 						*
@@ -13,7 +16,7 @@
 
 #include <fcntl.h>   /* File Control Definitions           */
 #include <termios.h> /* POSIX Terminal Control Definitions */
-
+#include <unistd.h>
 
 #include "serial.h"
 
@@ -23,24 +26,26 @@ const char* serialPorts[5]= {	ttyACM0,
 								ttyACM3,
 								ttyACM4
 							};
-//------------------------------------------
 
+//--------------------------------------------------------
 //initialize serial communication______________
 int openSerialCommunication(int* fd){
-	printf("Search for AVR device on serial ports...\n");
+	printf("\nSearch for AVR device on serial ports...\n");
 	int k = 0;
 	for ( ; k<5 ; k++){
 		*fd = open(serialPorts[k], O_RDWR | O_NOCTTY | O_NDELAY);
 		if (*fd >= 0){
-			printf("# /dev/ttyACM%d found\n", k);
+			printf(" /dev/ttyACM%d found.\n", k);
 			return k;
 		}
-		else { printf("# /dev/ttyACM%d not found\n", k); }
+		else { 
+			printf("# /dev/ttyACM%d not found\n", k);
+		}
 	}
 	return -1;
 }
 
-//-----------------------------------------
+//-------------------------------------------------------
 // Setting the Attributes of the serial port using termios structure
 void setSerialAttributes(int fd){
 	struct termios SerialPortSettings;	/* Create the structure                          */
@@ -67,11 +72,32 @@ void setSerialAttributes(int fd){
 		printf("\n  ERROR ! in Setting attributes");
 	}
 	else{
-		printf("\n  BaudRate = %d \n  StopBits = 1 \n  Parity   = none\n\n", BAUD_RATE);
+		printf("\n  | BaudRate = %d \n  | StopBits = 1 \n  | Parity   = none\n\n", BAUD_RATE);
 	}
 }
 
-//-----------------------------------------
+//-------------------------------------------------------
+void closeSerialCommunication(int* fd, ServoConfig_t* config){
+
+	uint8_t buf[5];
+	config->servoX = X_HALF_ANGLE;
+	config->servoY = Y_HALF_ANGLE;
+	encodeConfig(config, buf);
+
+	int ret = write(*fd, (void*)buf, sizeof(buf));
+	if( ret != (int)(sizeof(buf)/sizeof(uint8_t)) ){
+		printf("\n  -- %d bytes exprected but %d found\n",
+		(int)(sizeof(buf)/sizeof(uint8_t)), ret);
+	}
+
+	sleep(2); //required to make flush work, for some reason
+	tcflush(*fd, TCIOFLUSH);
+
+	ret = close(*fd);
+	if(ret != 0) printf("\n  -- close(fd) syscall failed [%d]\n", ret);
+}
+
+//-------------------------------------------------------
 // SERVOCONFIG_T* ===> UINT8_T*
 void encodeConfig(ServoConfig_t* config, uint8_t* buf){
 	buf[0] = (config->servoX) & 0xFF;	//low bits
@@ -80,7 +106,7 @@ void encodeConfig(ServoConfig_t* config, uint8_t* buf){
 	buf[3] = (config->servoY) >> 8;		//high bits
 	buf[4] = '\n';
 }
-//-----------------------------------------
+//-------------------------------------------------------
 /*
 bool handShake(int* fd){	//to be tested
 	printf("\n HANDSHACKING: ");
@@ -107,13 +133,13 @@ bool handShake(int* fd){	//to be tested
 	return true;
 }
 */
-//-----------------------------------------
+//-------------------------------------------------------
 void printServoConfig(ServoConfig_t config){
 	printf("\n   ======================================\n");
 	printf("  |  servoX: %d   ||   servoY: %d  |\n", config.servoX, config.servoY);
 	printf("   ======================================\n");
 }
-//-----------------------------------------
+//-------------------------------------------------------
 void printEncodedPack(uint8_t* buf){
 	printf("\n   =========================================\n  |");
 	printf(" 0x%02X  |", buf[0]);

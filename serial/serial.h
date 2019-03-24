@@ -3,7 +3,6 @@
 
 #include "../utils.h"
 
-
 #define BAUD_RATE 9600
 #define MYUBRR (F_CPU/16/BAUD_RATE-1)
 
@@ -17,6 +16,7 @@ extern const char* serialPorts[5];
 
 //___funcion signature_________________________________
 int openSerialCommunication(int* fd);
+void closeSerialCommunication(int* fd, ServoConfig_t* config);
 void setSerialAttributes(int fd);
 void encodeConfig(ServoConfig_t* config, uint8_t* buf);
 void decodeConfig(uint8_t* buf, ServoConfig_t* config);

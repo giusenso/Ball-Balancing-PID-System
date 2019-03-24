@@ -2,9 +2,9 @@
 #define BALLPHISIC_H
 
 #include "../utils.h"
+#include <unistd.h>
 #include <immintrin.h>
 #include <emmintrin.h>
-#include <x86intrin.h>
 
 #define     VEC         __m128i
 #define     LOAD        _mm_loadu_si128

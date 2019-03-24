@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <errno.h>
-#include <unistd.h>  /* UNIX Standard Definitions			*/
 #include <string.h>
 
 
@@ -26,15 +25,18 @@ typedef struct ServoConfig {
 /*********************************************/
 /*      SERVOS                               */
 /*********************************************/
+
 #define   PERIOD          1/F_CPU
 #define   DEAD_BAND       3   *0.000001
 #define   HALF_DEGREE     3.5 *0.000001
 
-#define   MIN_STEP          HALF_DEGREE/PERIOD   //56
-#define   HALF_ANGLE        23200
+#define   X_HALF_ANGLE      24500
+#define   Y_HALF_ANGLE      27800
 #define   ANGLE_OFFSET      5500
-#define	  MAX_ANGLE         HALF_ANGLE+ANGLE_OFFSET
-#define   MIN_ANGLE         HALF_ANGLE-ANGLE_OFFSET
+#define	  X_MAX_ANGLE         X_HALF_ANGLE+ANGLE_OFFSET
+#define   X_MIN_ANGLE         X_HALF_ANGLE-ANGLE_OFFSET
+#define	  Y_MAX_ANGLE         Y_HALF_ANGLE+ANGLE_OFFSET
+#define   Y_MIN_ANGLE         Y_HALF_ANGLE-ANGLE_OFFSET
 /*********************************************/
 
 //_ Global Variables _______________________

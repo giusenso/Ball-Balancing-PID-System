@@ -19,19 +19,21 @@
 //_ Function Declarations _____________________
 
 /* create() **********************************************************************/
-PID_t createPID(float _Kp, float _Ki, float _Kd, uint16_t setpoint, bool mode){
+PID_t createPID(float _Kp, float _Ki, float _Kd,
+                uint16_t setpoint, bool mode,
+                uint16_t min_angle, uint16_t max_angle){
+
     PID_t pid = {
         .Kp         =   _Kp,
         .Ki         =   _Ki,
         .Kd         =   _Kd,
         .setpoint   =   setpoint,
-        .error      =   1,
-        .pre_error  =   0,
+        .error      =   {0, 0},
         .dt         =   0.018,
-        .output     =   0,
+        .output     =   {0, 0}, 
         .integral   =   0,
-        .min        =   MIN_ANGLE,
-        .max        =   MAX_ANGLE,
+        .min        =   min_angle,
+        .max        =   max_angle,
         .inverted_mode = mode
     };
     return pid;
@@ -48,49 +50,67 @@ PID_t createPID(float _Kp, float _Ki, float _Kd, uint16_t setpoint, bool mode){
  **********************************************************************************/
 //  (pid, ball) ==> P+I+D
 
-float PIDCompute(PID_t* pid, uint16_t* ball_pos, short smooth_dp) {
+void PIDCompute(PID_t* pidX, PID_t* pidY, Ball ball) {
     
-    //set old err
-    pid->pre_error = pid->error;
+    //set old error and output
+    pidX->error[1] = pidX->error[0];
+    pidX->output[1] = pidX->output[0]; 
 
     //compute new error
-    if (!pid->inverted_mode) pid->error = (pid->setpoint - ball_pos[0]);
-    else pid->error = (ball_pos[0] - pid->setpoint);
+    if (!pidX->inverted_mode) pidX->error[0] = (pidX->setpoint - ball.x[0]);
+    else pidX->error[0] = (ball.x[0] - pidX->setpoint);
 
     //Integral: update and filter
-    pid->integral += pid->error * pid->dt;
-    pid->integral = saturationFilter(pid->integral, -100, +100); 
+    pidX->integral += pidX->error[0] * pidX->dt;
+    pidX->integral = saturationFilter(pidX->integral, -100, +100); 
 
     //Derivative: Update and filter
-    short filtered_dp = saturationFilter(smooth_dp, -50, +50);
+     ball.smooth_dx = saturationFilter(ball.smooth_dx, -50, +50);
+    if(!pidX->inverted_mode) ball.smooth_dx = -ball.smooth_dx;
     //printf("filtered_dp = %d\n\n", filtered_dp);
     
     //output
-    pid->output =
-            HALF_ANGLE +
-            pid->Kp * pid->error +
-            pid->Ki * pid->integral + 
-            pid->Kd * (filtered_dp/pid->dt);
+    pidX->output[0] =
+            X_HALF_ANGLE +
+            pidX->Kp * pidX->error[0] +
+            pidX->Ki * pidX->integral +
+            pidX->Kd * (ball.smooth_dx/pidX->dt);
     
+    pidY->output[0] = saturationFilter(pidY->output[0], pidY->output[1]-600, pidY->output[1]+600);
+    pidY->output[0] = saturationFilter(pidY->output[0], pidX->min, pidX->max);
+    
+    //////////////////////////////////////////////////////////////////////////
 
-    pid->output = saturationFilter(pid->output, MIN_ANGLE, MAX_ANGLE);
+    //set old error and output
+    pidY->error[1] = pidY->error[0];
+    pidY->output[1] = pidY->output[0]; 
 
-    return pid->output;
+    //compute new error
+    if (!pidY->inverted_mode) pidY->error[0] = (pidY->setpoint - ball.y[0]);
+    else pidY->error[0] = (ball.y[0] - pidY->setpoint);
+
+    //Integral: update and filter
+    pidY->integral += pidY->error[0] * pidY->dt;
+    pidY->integral = saturationFilter(pidY->integral, -100, +100); 
+
+    //Derivative: Update and filter
+    ball.smooth_dy = saturationFilter(ball.smooth_dy, -50, +50);
+    if(!pidY->inverted_mode) ball.smooth_dy = -ball.smooth_dy;
+    //printf("filtered_dp = %d\n\n", filtered_dp);
+    
+    //output
+    pidY->output[0] =
+            Y_HALF_ANGLE +
+            pidY->Kp * pidY->error[0] +
+            pidY->Ki * pidY->integral +
+            pidY->Kd * (ball.smooth_dy/pidY->dt);
+    
+    pidY->output[0] = saturationFilter(pidY->output[0], pidY->output[1]-600, pidY->output[1]+600);
+    pidY->output[0] = saturationFilter(pidY->output[0], pidY->min, pidY->max);
 }
 
 
 //_________________________________________________________________________
-/*
-//this filter return dPosition smoothed
-//[T is the threshold in terms of max deviation allowed]
-inline short smoothingFilter(uint16_t* pos, uint16_t T){
-    short dp = pos[0] - pos[1];
-    if(dp > T || dp < -T) return (pos[1]-pos[2]);
-    else{
-        return smooth_dp;
-    } 
-}
-*/
 
 // Correct saturated values
 inline short saturationFilter(short value , short T_MIN, short T_MAX){
@@ -108,6 +128,6 @@ void printPID(PID_t pid){
             integr:%d\n\
             output:%d\n*********************************************\n\n",
             pid.Kp, pid.Ki, pid.Kd,
-            pid.error, pid.dt, pid.integral, pid.output);
+            pid.error[0], pid.dt, pid.integral, pid.output[0]);
 
 }
