@@ -124,7 +124,7 @@ int main(void){
   uint8_t buf[5] = {0,0,0,0,0}; //[ x , x , y , y , '\n' ]
   
   OCR3A = (uint16_t)X_HALF_ANGLE;
-  OCR4A = (uint16_t)X_MIN_ANGLE;
+  OCR4A = (uint16_t)Y_HALF_ANGLE;
 
   UART_getString(buf);
   UART_getString(buf);

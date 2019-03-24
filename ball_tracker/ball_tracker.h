@@ -61,14 +61,12 @@ void createTrackbars();
 void createGainTrackbars(PID_t* XPID, PID_t* YPID);
 
 void drawObjectV2(Ball b, Mat &frame, bool noise_error);
+void drawLiveData(Mat &DATA, PID_t XPID, PID_t YPID);
 void plotPos (Ball b, Mat &frame, uint16_t _x, uint16_t _y);
+
 void morphOps(Mat &thresh);
 void trackFilteredObject(Ball* b, Mat threshold, Mat &cameraFeed);
 
 void circleDetector(Mat cameraFeed, Mat threshold);
-void callBackFunc(int event, int x, int y, int flags, void* param);
-void printHSV(mouseParams mp);
-
-
 
 #endif

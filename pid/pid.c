@@ -51,7 +51,7 @@ PID_t createPID(float _Kp, float _Ki, float _Kd,
 //  (pid, ball) ==> P+I+D
 
 void PIDCompute(PID_t* pidX, PID_t* pidY, Ball ball) {
-    
+/// SERVO X //////////////////////////////////////////////////////////////
     //set old error and output
     pidX->error[1] = pidX->error[0];
     pidX->output[1] = pidX->output[0]; 
@@ -76,11 +76,11 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball ball) {
             pidX->Ki * pidX->integral +
             pidX->Kd * (ball.smooth_dx/pidX->dt);
     
-    pidY->output[0] = saturationFilter(pidY->output[0], pidY->output[1]-600, pidY->output[1]+600);
-    pidY->output[0] = saturationFilter(pidY->output[0], pidX->min, pidX->max);
-    
-    //////////////////////////////////////////////////////////////////////////
+    pidX->output[0] = saturationFilter(pidX->output[0], pidX->output[1]-600, pidX->output[1]+600);
+    pidX->output[0] = saturationFilter(pidX->output[0], pidX->min, pidX->max);
+//////////////////////////////////////////////////////////////////////////
 
+/// SERVO Y //////////////////////////////////////////////////////////////
     //set old error and output
     pidY->error[1] = pidY->error[0];
     pidY->output[1] = pidY->output[0]; 
@@ -107,6 +107,7 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball ball) {
     
     pidY->output[0] = saturationFilter(pidY->output[0], pidY->output[1]-600, pidY->output[1]+600);
     pidY->output[0] = saturationFilter(pidY->output[0], pidY->min, pidY->max);
+//////////////////////////////////////////////////////////////////////////
 }
 
 

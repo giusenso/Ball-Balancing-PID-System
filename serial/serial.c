@@ -69,7 +69,8 @@ void setSerialAttributes(int fd){
 	SerialPortSettings.c_oflag &= ~OPOST;/*No Output Processing*/
 
 	if((tcsetattr(fd,TCSANOW,&SerialPortSettings)) != 0){
-		printf("\n  ERROR ! in Setting attributes");
+		printf("\n ERROR! cannot set serial attributes\n\n");
+		exit(EXIT_FAILURE);
 	}
 	else{
 		printf("\n  | BaudRate = %d \n  | StopBits = 1 \n  | Parity   = none\n\n", BAUD_RATE);
@@ -94,7 +95,10 @@ void closeSerialCommunication(int* fd, ServoConfig_t* config){
 	tcflush(*fd, TCIOFLUSH);
 
 	ret = close(*fd);
-	if(ret != 0) printf("\n  -- close(fd) syscall failed [%d]\n", ret);
+	if(ret != 0) {
+		printf("\n  -- close(fd) syscall failed [%d]\n", ret);
+		exit(EXIT_FAILURE);
+	}
 }
 
 //-------------------------------------------------------

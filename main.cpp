@@ -6,6 +6,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/core.hpp>
 
 #include <time.h>
 
@@ -19,15 +20,19 @@ using namespace cv;
 //********** M A I N **********************************************************************************
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+
 int main(int argc, char* argv[]){
 
-	Mat MATS[3];	// Mat Array = [ webcam | masked | HSV ]
+	Mat MATS[3] = {	cv::Mat(FRAME_HEIGHT,FRAME_WIDTH, CV_8UC3) , 
+					cv::Mat(CONTROL_AREA, CONTROL_AREA, CV_8UC3),
+					cv::Mat(CONTROL_AREA, CONTROL_AREA, CV_8UC3),
+					};	// Mat Array = [ webcam | masked | HSV ]
+	
+	cv::Mat TOOL(FRAME_HEIGHT-CONTROL_AREA, CONTROL_AREA, CV_8UC3, cv::Scalar(80,70,50));
+	cv::Mat GUI;
 
 	//initialize camera__________________________
 	VideoCapture capture;
-
-	//enable this to capture mp4 file
-	//capture.open("/home/jius/Desktop/ball-tracking-platform/ball_tracker/samples/test3.mp4");
 
 	int CAM_NUMBER = 0;
 	for ( ; CAM_NUMBER<3 ; CAM_NUMBER++){
@@ -38,13 +43,9 @@ int main(int argc, char* argv[]){
 		}
 	}
 	if (CAM_NUMBER == 3){
-		perror("\nERROR: NO dev/video* DEVICE CONNECTED\n");
-		return -1;
+		perror("ERROR: NO dev/video* DEVICE CONNECTED\n");
+		exit(EXIT_FAILURE);
 	}
-
-	//set height and width of capture frame
-	capture.set(CV_CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
-	capture.set(CV_CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
 
 	//initialize serial communication______________
 	int fd = -1;
@@ -54,30 +55,9 @@ int main(int argc, char* argv[]){
 		printf("# %s successfully opened\n", serialPorts[device_opened]);
 	}
 	else{
-		printf("\nERROR: no serial device avaible!\n");
-		return -1;
+		perror("\nERROR: no serial device avaible!\n");
+		exit(EXIT_FAILURE);
 	}
-
-	//_____________________________________________
-
-	/*
-	//grab 1 frame to capture hsv ball values
-
-	imshow(windowName2, MATS[1]);
-	imshow(windowName, MATS[0]);
-
-	mouseParams_t mp;
-	mp._mat = MATS[0];
-	mp._H_MIN = &H_MIN;
-	mp._H_MAX = &H_MAX;
-	mp._S_MIN = &S_MIN;
-	mp._S_MAX = &S_MAX;
-	mp._V_MIN = &V_MIN;
-	mp._V_MAX = &V_MAX;
-	setMouseCallback( windowName, callBackFunc, (void*)&mp);
-	printHSV(mp);
-	*/
-//________________________________________________
 
 	uint8_t buf[5] = { 0, 0, 0, 0, '\n'};
 	int bytes_written = 0;
@@ -86,13 +66,13 @@ int main(int argc, char* argv[]){
 	//create ball instance
 	printf("\n# create Ball object... ");
 	Ball ball = createBall(FRAME_WIDTH/2, FRAME_HEIGHT/2);
-	printf(" Done.\n");
+	printf("Done.\n");
 	printBall(ball);
 	
 //_ X PID SETUP __________________________________
 	printf("\n# create PID objects... ");
-    PID_t XPID = createPID(15, 8, 3, FRAME_WIDTH/2, true, X_MIN_ANGLE, X_MAX_ANGLE);
-	PID_t YPID = createPID(18, 9, 3, FRAME_HEIGHT/2, false, Y_MIN_ANGLE, Y_MAX_ANGLE);
+    PID_t XPID = createPID(12, 12, 3, FRAME_WIDTH/2, true, X_MIN_ANGLE, X_MAX_ANGLE);
+	PID_t YPID = createPID(12, 12, 3, FRAME_HEIGHT/2, false, Y_MIN_ANGLE, Y_MAX_ANGLE);
 	printf("Done. \n");
     printPID(XPID);
 	printPID(YPID);
@@ -106,31 +86,12 @@ int main(int argc, char* argv[]){
 	printServoConfig(config);
 	
 //________________________________________________
+	cv::Rect controlROI(SETPOINT_X-CONTROL_AREA/2,SETPOINT_Y-CONTROL_AREA/2, 
+						CONTROL_AREA, CONTROL_AREA);
 
-/*
-	namedWindow("A", WINDOW_AUTOSIZE);
-	namedWindow("B", WINDOW_AUTOSIZE);
-	Mat OUTPUT;
-	Mat A = imread("/home/jius/Desktop/A.jpg", IMREAD_COLOR);
-	Mat B = imread("/home/jius/Desktop/B.jpg", IMREAD_COLOR);
-	A.convertTo(A, CV_64F);
-	B.convertTo(A, CV_64F);
-	//cv::hconcat(A, B, OUTPUT); // Accept array + size
-	//assert(480 == OUTPUT.rows && 1280 == OUTPUT.cols);
-	imshow("A",  A);
-	imshow("B",  B);
-	//imshow(windowName2, OUTPUT);
-	sleep(100000);
-	*/
-
-	char temp;
+	char tmp;
 	printf("\n # All parameters setted, ready to go...\n\n -> Press enter to start <-\n");
-	scanf("%c", &temp);
-
-	printf("\n# create tracksbars... ");
-	createTrackbars();
-	createGainTrackbars(&XPID, &YPID);
-	printf("Done. \n");
+	scanf("%c", &tmp);
 	
 	//Handshake routine
 	printf("\n# Handshake routine... ");
@@ -140,62 +101,96 @@ int main(int argc, char* argv[]){
 
 	clock_t start, end;
 
-	if (strcmp(argv[1],"-manual") == 0){
-		config.servoX = X_HALF_ANGLE;
-		config.servoY = Y_HALF_ANGLE;
-		while(true){
-			printf("\nEnter X Angle: ");
-			scanf("%u", &config.servoX);
-			printf("Enter Y Angle: ");
-			scanf("%u", &config.servoY);
-			encodeConfig(&config, buf);	//Create Packet
-			bytes_written = write(fd,(void*)buf, sizeof(buf)); //Send packet
-		}
-	}
-	
-	if (strcmp(argv[1],"-auto") == 0){//:::::::::::: MAIN LOOP :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-		cv::Rect controlROI(SETPOINT_X-CONTROL_AREA/2,SETPOINT_Y-CONTROL_AREA/2, 
-							CONTROL_AREA, CONTROL_AREA);
-		int _l = 100;
-		cv::Rect ballROI(ball.x[0]-_l, ball.y[0]-_l, _l+_l, _l+_l);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	if (strcmp(argv[1],"-auto") == 0){//:::::::::::: MAIN LOOP :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+		
+		printf("\n# create tracksbars... ");
+		createTrackbars();
+		createGainTrackbars(&XPID, &YPID);
+		printf("Done. \n");
+	
+		capture.read(MATS[0]);
+		cvtColor(MATS[0](controlROI), MATS[2], COLOR_BGR2HSV);
+		inRange(MATS[2], Scalar(63, 114, 79), Scalar(96, 255, 256), MATS[1]);
+		morphOps(MATS[1]);
+		trackFilteredObject(&ball, MATS[1], MATS[0]);
+		
 		while(true){
 			start = clock();
 
-			capture.read(MATS[0]); //store image to matrix
-
-			cvtColor(MATS[0](controlROI), MATS[2], COLOR_BGR2HSV); //convert frame from BGR to HSV colorspace
-
+			capture.read(MATS[0]); 									//store image to matrix
+			cvtColor(MATS[0](controlROI), MATS[2], COLOR_BGR2HSV);	//convert frame from BGR to HSV colorspace
 			inRange(MATS[2], Scalar(63, 114, 79), Scalar(96, 255, 256), MATS[1]);
-			//filter HSV image between values and store filtered image to MATS[1]
-			//inRange(MATS[2], Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), MATS[1]);
-			
-			/*
-			if(ball.detected){
-				if(ball.x[0] > _l) ballROI.x = ball.x[0] - _l;
-				else ballROI.x = 0;
-				if(ball.y[0] > _l) ballROI.y = ball.y[0] - _l;
-				else ballROI.y = 0;
-				MATS[1] = MATS[1](ballROI);
-			}
-			*/
+			//inRange(MATS[2], Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), MATS[1]); //filter HSV image between values and store filtered image to MATS[1]
+			morphOps(MATS[1]); 								//eliminate noise and emphasize the filtered object(s)
+			trackFilteredObject(&ball, MATS[1], MATS[0]); 	//this function return the x and y ball coordinates
+			drawObjectV2(ball, MATS[0], false);
 
-			morphOps(MATS[1]); //eliminate noise and emphasize the filtered object(s)
-			trackFilteredObject(&ball, MATS[1], MATS[0]); //this function will return the x and y ball coordinates
+			cvtColor(MATS[1], MATS[1], COLOR_GRAY2BGR);
+			cv::vconcat(TOOL, MATS[1], MATS[1]);
+			cv::hconcat(MATS[1], MATS[0], GUI); 		// Accept array + size
+			imshow(windowName, GUI); 				//show camera feed	
 
-			imshow(windowName,  MATS[0]); 	//show camera feed
-			imshow(windowName1, MATS[1]);	// Threshold
 
 			if(ball.detected){
-
 				PIDCompute(&XPID, &YPID, ball);
 				config.servoX = XPID.output[0];
 				config.servoY = YPID.output[0];
 
 				encodeConfig(&config, buf);	//Create Packet
-
 				bytes_written = write(fd,(void*)buf, sizeof(buf)); //Send packet
-				//printf("\n# %d Bytes written to /dev/ttyACM \n", bytes_written);
+				if(bytes_written != 5){
+					perror("Error: write() syscall failed");
+					exit(EXIT_FAILURE);
+				}
+			}
+
+			if(waitKey(10) >= 0) break;
+			
+			end = clock();
+			XPID.dt = YPID.dt = (float)(end - start)/CLOCKS_PER_SEC;
+		}//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+	}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	if (strcmp(argv[1],"-fast") == 0){//:::::::::::: MAIN LOOP :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+		
+		printf("\n# create tracksbars... ");
+		//createTrackbars();
+		createGainTrackbars(&XPID, &YPID);
+		printf("Done. \n");
+
+		capture.read(MATS[0]);
+		cvtColor(MATS[0](controlROI), MATS[2], COLOR_BGR2HSV);
+		inRange(MATS[2], Scalar(63, 114, 79), Scalar(96, 255, 256), MATS[1]);
+		morphOps(MATS[1]);
+		trackFilteredObject(&ball, MATS[1], MATS[0]);
+		
+		while(true){
+			start = clock();
+
+			capture.read(MATS[0]); 									//store image to matrix
+			cvtColor(MATS[0](controlROI), MATS[2], COLOR_BGR2HSV);	//convert frame from BGR to HSV colorspace
+			inRange(MATS[2], Scalar(63, 114, 79), Scalar(96, 255, 256), MATS[1]);
+			//inRange(MATS[2], Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), MATS[1]); //filter HSV image between values and store filtered image to MATS[1]
+			morphOps(MATS[1]); 								//eliminate noise and emphasize the filtered object(s)
+			trackFilteredObject(&ball, MATS[1], MATS[0]); 	//this function return the x and y ball coordinates
+
+			if(ball.detected){
+				PIDCompute(&XPID, &YPID, ball);
+				config.servoX = XPID.output[0];
+				config.servoY = YPID.output[0];
+
+				encodeConfig(&config, buf);	//Create Packet
+				bytes_written = write(fd,(void*)buf, sizeof(buf)); //Send packet
+				if(bytes_written != 5){
+					perror("Error: write() syscall failed");
+					exit(EXIT_FAILURE);
+				}
 			}
 
 			if(waitKey(5) >= 0) break;
@@ -205,12 +200,34 @@ int main(int argc, char* argv[]){
 		}//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 	}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	if (strcmp(argv[1],"-manual") == 0){
+		config.servoX = X_HALF_ANGLE;
+		config.servoY = Y_HALF_ANGLE;
+		while(true){
+			printf("\nEnter X Angle: ");
+			scanf("%u", (unsigned int*)&config.servoX);
+			printf("Enter Y Angle: ");
+			scanf("%u", (unsigned int*)&config.servoY);
+
+			encodeConfig(&config, buf);	//Create Packet
+			bytes_written = write(fd,(void*)buf, sizeof(buf)); //Send packet
+			if(bytes_written != 5){
+					perror("Error: write() syscall failed");
+					exit(EXIT_FAILURE);
+			}
+		}
+	}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //__EXIT ROUTINE __________________________
 	printf("\n========== EXIT PROTOCOL ========== \n\n");
 
 	//destroy all windows
 	printf("# Destroy all windows... ");
-	destroyAllWindows();
+	cv::destroyAllWindows();
 	printf("Done.\n");
 
 	//release VideoCapture
@@ -231,5 +248,7 @@ int main(int argc, char* argv[]){
 	
 	printf("\n===================================\n\n");
 
-	return 0;
+	exit(EXIT_SUCCESS);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

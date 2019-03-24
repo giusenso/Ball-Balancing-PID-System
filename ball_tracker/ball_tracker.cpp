@@ -33,7 +33,6 @@ const String windowName3 = "After Morphological Operations";
 const String trackbarWindowName = "Trackbars";
 const String gainTrackbarWindowName = "PID GAINS";
 
-
 /*************************************************************************************
  *--------  drawing functions -------------------------------------------------------*
  *************************************************************************************/
@@ -56,7 +55,7 @@ void createTrackbars(){
     namedWindow(trackbarWindowName, 0);
 
 	//create memory to store trackbar name on window
-	char TrackbarName[50];
+	char TrackbarName[16];
 	sprintf( TrackbarName, "H_MIN");
 	sprintf( TrackbarName, "H_MAX");
 	sprintf( TrackbarName, "S_MIN");
@@ -82,7 +81,7 @@ void createGainTrackbars(PID_t* XPID, PID_t* YPID){
 
     namedWindow(gainTrackbarWindowName, 0);
 
-	char TrackbarName[50];
+	char TrackbarName[16];
 	sprintf( TrackbarName, "X_Kp");
 	sprintf( TrackbarName, "X_Ki");
 	sprintf( TrackbarName, "X_Kd");
@@ -122,8 +121,8 @@ void drawObjectV2(Ball ball, Mat &frame, bool noise_error){
 		//draw setpoint area
 		circle(frame, Point(SETPOINT_X,SETPOINT_Y), 2, CYAN, 3);
 		rectangle(	frame,
-					Point(SETPOINT_X-TOLLERANCE, SETPOINT_Y-TOLLERANCE),
-					Point(SETPOINT_X+TOLLERANCE, SETPOINT_Y+TOLLERANCE),
+					Point(SETPOINT_X-30, SETPOINT_Y-30),
+					Point(SETPOINT_X+30, SETPOINT_Y+30),
 					ORANGE, 2, LINE_4, 0);
 
 
@@ -204,7 +203,7 @@ void morphOps(Mat &thresh){
 }
 
 void trackFilteredObject(Ball* ball, Mat threshold, Mat &cameraFeed){
-	bool noise_error = false;
+	//bool noise_error = false;
 
 	//these two vectors needed for output of findContours
 	std::vector< std::vector<cv::Point> > contours;
@@ -238,17 +237,15 @@ void trackFilteredObject(Ball* ball, Mat threshold, Mat &cameraFeed){
 				}
 			}
 		}
+		/*
 		else{
 			noise_error = true;
-			//*ball = createBall(FRAME_WIDTH/2, FRAME_HEIGHT/2);
-		}
+			*ball = createBall(FRAME_WIDTH/2, FRAME_HEIGHT/2);
+		}*/
 	}
 	else{
-		//restore default ball parameters
 		ball->detected = false;
 	}
-
-	drawObjectV2(*ball, cameraFeed, noise_error);
 }
 
 void circleDetector(Mat cameraFeed, Mat threshold){
@@ -273,51 +270,9 @@ void circleDetector(Mat cameraFeed, Mat threshold){
 	gray.release();
 }
 
-void callBackFunc(int event, int x, int y, int flags, void* param){
-    if  ( event == EVENT_LBUTTONUP ){
-        printf("\n# MOUSE CLICK EVENT\n	x: %d\n	y: %d\n", x, y);
 
-		// Mount back the parameters
-    	mouseParams* mp = (mouseParams*)param;
-		Mat HSV;
-		cvtColor(mp->_mat, HSV, COLOR_BGR2HSV);
-		Vec3b hsv = HSV.at<Vec3b>(x,y);
-
-		int h = ((int)(hsv.val[0]))*(250.0/360.0);
-		//int s = (int)(hsv.val[1]);
-		//int v = (int)(hsv.val[2]);
-
-		int epsilon = 9;
-
-		*mp->_H_MIN = (h-epsilon);
-		if (*mp->_H_MIN < 0)*mp->_H_MIN = 0;
-
-		*mp->_H_MAX = (h+epsilon);
-		if (*mp->_H_MAX > 255)*mp->_H_MAX = 255;
-
-		*mp->_S_MIN = (126);
-		if (*mp->_S_MIN < 0)*mp->_S_MIN = 0;
-
-		*mp->_S_MAX = (255);
-		if (*mp->_S_MAX > 255)*mp->_S_MAX = 255;
-
-		*mp->_V_MIN = (60);
-		if (*mp->_V_MIN < 0)*mp->_V_MIN = 0;
-
-		*mp->_V_MAX = (245);
-		if (*mp->_V_MAX > 255)*mp->_V_MAX = 255;
-
-		printHSV(*mp);
-    }
-}
-
-void printHSV(mouseParams mp){
-	printf("\n  =======================\n");
-	printf(" ||	H MIN = %d	||\n", *mp._H_MIN);
-	printf(" ||	  MAX = %d	||\n", *mp._H_MAX);
-	printf(" ||	S MIN = %d	||\n", *mp._S_MIN);
-	printf(" ||	  MAX = %d	||\n", *mp._S_MAX);
-	printf(" ||	V MIN = %d	||\n", *mp._V_MIN);
-	printf(" ||	  MAX = %d	||\n", *mp._V_MAX);
-	printf("  =======================\n");
+void drawLiveData(Mat &DATA, PID_t XPID, PID_t YPID){
+	putText(DATA, intToString(XPID.output[0]), Point(5,25), 1, 2, BLUE, 2);
+	putText(DATA, intToString(YPID.output[0]), Point(205,25), 1, 2, BLUE, 2);
+	
 }
