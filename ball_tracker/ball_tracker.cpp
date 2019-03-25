@@ -16,7 +16,6 @@
 *											*
 *********************************************/
 
-
 #include "ball_tracker.h"
 
 int H_MIN = 0;
@@ -27,15 +26,63 @@ int V_MIN = 0;
 int V_MAX = 256;
 
 const String windowName = "Original Image";
-const String windowName1 = "HSV Image";
-const String windowName2 = "Thresholded Image";
-const String windowName3 = "After Morphological Operations";
 const String trackbarWindowName = "Trackbars";
 const String gainTrackbarWindowName = "PID GAINS";
 
 /*************************************************************************************
  *--------  drawing functions -------------------------------------------------------*
  *************************************************************************************/
+
+int getWindowPos(cv::Point* point, cv::Mat mat){
+	const char* command = "xrandr | grep '*'";
+ 	FILE* fpipe = (FILE*)popen(command,"r");
+ 	char line[256];
+	memset(line, 0, sizeof(line));
+ 	fgets( line, sizeof(line), fpipe );
+
+	int x_res = 0, y_res = 0, i = 0, start = 0, end = 0;
+
+	while(true){	//find x res
+		if(line[i] == ' '){
+			start = i+1;
+		}
+		if(line[i] == 'x'){
+			end = i;
+			char x_buf[end-start];
+			memset(x_buf, 0, sizeof(x_buf));
+			memcpy(x_buf, line+start, end-start);
+			x_res = atoi(x_buf);
+			break;
+		}
+		i++;
+	}
+	start = end+1;
+	while(true){	//find y res
+		if(line[i] == ' '){
+			end = i;
+			char y_buf[end-start];
+			memset(y_buf, 0, sizeof(y_buf));
+			memcpy(y_buf, line+start, end-start);
+			y_res = atoi(y_buf);
+			break;
+		}
+		i++;
+	}
+ 	pclose(fpipe);
+
+	if(x_res<360||x_res>4096||y_res<240||y_res>4096){
+		fprintf(stderr, "Screen resolution wrong!\n");
+		return -1;
+	}
+	
+	if(x_res<720) x_res = 720;
+	if(y_res<480) x_res = 480;
+
+	point->x = (x_res - mat.cols) / 2;
+	point->y = (y_res - mat.rows) / 2;
+
+	return 0;
+}
 
 void on_trackbar( int, void* ){
 	//This function gets called whenever a

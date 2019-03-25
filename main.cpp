@@ -20,16 +20,15 @@ using namespace cv;
 //********** M A I N **********************************************************************************
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-
 int main(int argc, char* argv[]){
 
 	Mat MATS[3] = {	cv::Mat(FRAME_HEIGHT,FRAME_WIDTH, CV_8UC3) , 
 					cv::Mat(CONTROL_AREA, CONTROL_AREA, CV_8UC3),
 					cv::Mat(CONTROL_AREA, CONTROL_AREA, CV_8UC3),
-					};	// Mat Array = [ webcam | masked | HSV ]
+				  };	// Mat Array = [ webcam | masked | HSV ]
 	
 	cv::Mat TOOL(FRAME_HEIGHT-CONTROL_AREA, CONTROL_AREA, CV_8UC3, cv::Scalar(80,70,50));
-	cv::Mat GUI;
+	cv::Mat GUI(FRAME_HEIGHT, FRAME_WIDTH+CONTROL_AREA, CV_8UC3, cv::Scalar(80,70,50));
 
 	//initialize camera__________________________
 	VideoCapture capture;
@@ -37,12 +36,12 @@ int main(int argc, char* argv[]){
 	int CAM_NUMBER = 0;
 	for ( ; CAM_NUMBER<3 ; CAM_NUMBER++){
 		capture.open(CAM_NUMBER);
-		if (capture.isOpened()){
+		if ( capture.isOpened() ){
 			printf("# /dev/video%d successfully opened\n", CAM_NUMBER);
 			break;
 		}
 	}
-	if (CAM_NUMBER == 3){
+	if ( CAM_NUMBER == 3 ){
 		perror("ERROR: NO dev/video* DEVICE CONNECTED\n");
 		exit(EXIT_FAILURE);
 	}
@@ -50,7 +49,7 @@ int main(int argc, char* argv[]){
 	//initialize serial communication______________
 	int fd = -1;
 	int device_opened = openSerialCommunication(&fd);
-	if(device_opened >= 0){
+	if( device_opened >= 0 ){
 		setSerialAttributes(fd);
 		printf("# %s successfully opened\n", serialPorts[device_opened]);
 	}
@@ -59,8 +58,9 @@ int main(int argc, char* argv[]){
 		exit(EXIT_FAILURE);
 	}
 
-	uint8_t buf[5] = { 0, 0, 0, 0, '\n'};
 	int bytes_written = 0;
+	uint8_t buf[5];
+	memset(buf, 0, sizeof(buf));
 	printf("# write_buffer allocated\n");
 
 	//create ball instance
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]){
 	cv::Rect controlROI(SETPOINT_X-CONTROL_AREA/2,SETPOINT_Y-CONTROL_AREA/2, 
 						CONTROL_AREA, CONTROL_AREA);
 
-	char tmp;
+	char tmp = 0;
 	printf("\n # All parameters setted, ready to go...\n\n -> Press enter to start <-\n");
 	scanf("%c", &tmp);
 	
@@ -116,7 +116,17 @@ int main(int argc, char* argv[]){
 		inRange(MATS[2], Scalar(63, 114, 79), Scalar(96, 255, 256), MATS[1]);
 		morphOps(MATS[1]);
 		trackFilteredObject(&ball, MATS[1], MATS[0]);
-		
+		cvtColor(MATS[1], MATS[1], COLOR_GRAY2BGR);
+		cv::vconcat(MATS[1], TOOL, MATS[1]);
+		cv::hconcat(MATS[1], MATS[0], GUI);
+
+		cv::Point gui_pos = cv::Point(1,1);
+		if( getWindowPos(&gui_pos, GUI) != 0 ){
+			exit(EXIT_FAILURE);
+		}
+		imshow(windowName, GUI);
+		moveWindow(windowName, gui_pos.x, gui_pos.y-100);
+
 		while(true){
 			start = clock();
 
@@ -129,10 +139,9 @@ int main(int argc, char* argv[]){
 			drawObjectV2(ball, MATS[0], false);
 
 			cvtColor(MATS[1], MATS[1], COLOR_GRAY2BGR);
-			cv::vconcat(TOOL, MATS[1], MATS[1]);
-			cv::hconcat(MATS[1], MATS[0], GUI); 		// Accept array + size
-			imshow(windowName, GUI); 				//show camera feed	
-
+			cv::vconcat(MATS[1], TOOL, MATS[1]);
+			cv::hconcat(MATS[1], MATS[0], GUI);
+			imshow(windowName, GUI);
 
 			if(ball.detected){
 				PIDCompute(&XPID, &YPID, ball);
@@ -159,17 +168,22 @@ int main(int argc, char* argv[]){
 
 	if (strcmp(argv[1],"-fast") == 0){//:::::::::::: MAIN LOOP :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 		
-		printf("\n# create tracksbars... ");
-		//createTrackbars();
-		createGainTrackbars(&XPID, &YPID);
-		printf("Done. \n");
-
 		capture.read(MATS[0]);
 		cvtColor(MATS[0](controlROI), MATS[2], COLOR_BGR2HSV);
 		inRange(MATS[2], Scalar(63, 114, 79), Scalar(96, 255, 256), MATS[1]);
 		morphOps(MATS[1]);
 		trackFilteredObject(&ball, MATS[1], MATS[0]);
-		
+		cvtColor(MATS[1], MATS[1], COLOR_GRAY2BGR);
+		cv::vconcat(MATS[1], TOOL, MATS[1]);
+		cv::hconcat(MATS[1], MATS[0], GUI);
+
+		cv::Point gui_pos;
+		if( getWindowPos(&gui_pos, GUI) != 0 ){
+			exit(EXIT_FAILURE);
+		}
+		imshow(windowName, GUI);
+		moveWindow(windowName, gui_pos.x, gui_pos.y-100);
+
 		while(true){
 			start = clock();
 
@@ -179,6 +193,11 @@ int main(int argc, char* argv[]){
 			//inRange(MATS[2], Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), MATS[1]); //filter HSV image between values and store filtered image to MATS[1]
 			morphOps(MATS[1]); 								//eliminate noise and emphasize the filtered object(s)
 			trackFilteredObject(&ball, MATS[1], MATS[0]); 	//this function return the x and y ball coordinates
+
+			cvtColor(MATS[1], MATS[1], COLOR_GRAY2BGR);
+			cv::vconcat(MATS[1], TOOL, MATS[1]);
+			cv::hconcat(MATS[1], MATS[0], GUI);
+			imshow(windowName, GUI);
 
 			if(ball.detected){
 				PIDCompute(&XPID, &YPID, ball);
@@ -199,27 +218,6 @@ int main(int argc, char* argv[]){
 			XPID.dt = YPID.dt = (float)(end - start)/CLOCKS_PER_SEC;
 		}//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 	}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	if (strcmp(argv[1],"-manual") == 0){
-		config.servoX = X_HALF_ANGLE;
-		config.servoY = Y_HALF_ANGLE;
-		while(true){
-			printf("\nEnter X Angle: ");
-			scanf("%u", (unsigned int*)&config.servoX);
-			printf("Enter Y Angle: ");
-			scanf("%u", (unsigned int*)&config.servoY);
-
-			encodeConfig(&config, buf);	//Create Packet
-			bytes_written = write(fd,(void*)buf, sizeof(buf)); //Send packet
-			if(bytes_written != 5){
-					perror("Error: write() syscall failed");
-					exit(EXIT_FAILURE);
-			}
-		}
-	}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //__EXIT ROUTINE __________________________
@@ -227,7 +225,11 @@ int main(int argc, char* argv[]){
 
 	//destroy all windows
 	printf("# Destroy all windows... ");
-	cv::destroyAllWindows();
+	cv::destroyWindow(windowName);
+	if (strcmp(argv[1],"-auto") == 0){
+		cv::destroyWindow(trackbarWindowName);
+		cv::destroyWindow(gainTrackbarWindowName);
+	}
 	printf("Done.\n");
 
 	//release VideoCapture
@@ -240,6 +242,17 @@ int main(int argc, char* argv[]){
 	MATS[0].release();
 	MATS[1].release();
 	MATS[2].release();
+	TOOL.release();
+	GUI.release();
+	printf("Done.\n");
+
+	//release Trackbars
+	printf("# Release cv::Mat... ");
+	MATS[0].release();
+	MATS[1].release();
+	MATS[2].release();
+	TOOL.release();
+	GUI.release();
 	printf("Done.\n");
 
 	printf("# Close serial communication... ");

@@ -67,7 +67,6 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball ball) {
     //Derivative: Update and filter
      ball.smooth_dx = saturationFilter(ball.smooth_dx, -50, +50);
     if(!pidX->inverted_mode) ball.smooth_dx = -ball.smooth_dx;
-    //printf("filtered_dp = %d\n\n", filtered_dp);
     
     //output
     pidX->output[0] =
@@ -96,7 +95,6 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball ball) {
     //Derivative: Update and filter
     ball.smooth_dy = saturationFilter(ball.smooth_dy, -50, +50);
     if(!pidY->inverted_mode) ball.smooth_dy = -ball.smooth_dy;
-    //printf("filtered_dp = %d\n\n", filtered_dp);
     
     //output
     pidY->output[0] =

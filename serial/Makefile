@@ -2,7 +2,7 @@ HEADERS = serial.h
 CC = gcc
 
 test: test.o serial.o
-	$(CC) -Wall -o "$@" test.o serial.o -lm
+	$(CC) -Wall -pg -o "$@" test.o serial.o -lm
 
 test.o: test.c $(HEADERS)
 	$(CC) -c test.c serial.c

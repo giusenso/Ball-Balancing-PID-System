@@ -54,6 +54,7 @@ typedef struct mouseParams{
 }mouseParams_t;
 //_ Function Signature _________________________
 
+int getWindowPos(cv::Point* point , cv::Mat mat);
 void on_trackbar( int, void* );
 String intToString(int number);
 
