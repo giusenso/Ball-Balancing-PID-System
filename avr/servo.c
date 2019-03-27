@@ -1,7 +1,7 @@
 #include <util/delay.h>
 #include <avr/io.h>
 #include <stdint.h>
-#include "../utils.h"
+//#include "../utils.h"
 #include "../serial/serial.h" /*servo specs here*/
 
 #define TCCRA_MASK	(1<<WGM11)|(1<<COM1A1)|(1<<COM1B1);	//NON Inverted PWM
@@ -114,6 +114,9 @@ void PWM_init(void){
 
 //*** M A I N ********************************************/
 int main(void){
+  
+  const uint8_t mask=(1<<7);
+  DDRB |= mask;
 
   UART_init();
   //if(!handShake()){ exit() }; //to be tested
@@ -123,8 +126,11 @@ int main(void){
 
   uint8_t buf[5] = {0,0,0,0,0}; //[ x , x , y , y , '\n' ]
   
-  OCR3A = (uint16_t)X_HALF_ANGLE;
-  OCR4A = (uint16_t)Y_HALF_ANGLE;
+  OCR3A = (uint16_t)23000;
+  OCR4A = (uint16_t)27000;
+  _delay_ms(200);
+  OCR3A = (uint16_t)27000;
+  OCR4A = (uint16_t)23000;
 
   UART_getString(buf);
   UART_getString(buf);
@@ -133,6 +139,8 @@ int main(void){
     UART_getString(buf);
     OCR3A = decodeX(buf);
     OCR4A = decodeY(buf);
+	PORTB=mask;
+	PORTB=0;
   }
 }
 

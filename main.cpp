@@ -16,6 +16,13 @@
 
 using namespace cv;
 
+void cvRoutine(cv::Mat * MATS, cv::Rect ROI, Ball* ball){
+	cvtColor(MATS[0](ROI), MATS[2], COLOR_BGR2HSV);	//convert frame from BGR to HSV colorspace
+	inRange(MATS[2], Scalar(74, 24, 204), Scalar(93, 240, 255), MATS[1]);
+	morphOps(MATS[1]);
+	trackFilteredObject(ball, MATS[1], MATS[0]);
+	cv::imshow(windowName, MATS[1]);
+}
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 //********** M A I N **********************************************************************************
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -63,7 +70,7 @@ int main(int argc, char* argv[]){
 	memset(buf, 0, sizeof(buf));
 	printf("# write_buffer allocated\n");
 
-	//create ball instance
+//_ Ball setup __________________________________
 	printf("\n# create Ball object... ");
 	Ball ball = createBall(FRAME_WIDTH/2, FRAME_HEIGHT/2);
 	printf("Done.\n");
@@ -71,8 +78,8 @@ int main(int argc, char* argv[]){
 	
 //_ X PID SETUP __________________________________
 	printf("\n# create PID objects... ");
-    PID_t XPID = createPID(12, 12, 3, FRAME_WIDTH/2, true, X_MIN_ANGLE, X_MAX_ANGLE);
-	PID_t YPID = createPID(12, 12, 3, FRAME_HEIGHT/2, false, Y_MIN_ANGLE, Y_MAX_ANGLE);
+    PID_t XPID = createPID(12, 15, 1.2, FRAME_WIDTH/2, true, X_MIN_ANGLE, X_MAX_ANGLE);
+	PID_t YPID = createPID(12, 15, 1.2, FRAME_HEIGHT/2, false, Y_MIN_ANGLE, Y_MAX_ANGLE);
 	printf("Done. \n");
     printPID(XPID);
 	printPID(YPID);
@@ -97,9 +104,14 @@ int main(int argc, char* argv[]){
 	printf("\n# Handshake routine... ");
 	encodeConfig(&config, buf);
 	bytes_written = write(fd,(void*)buf, sizeof(buf));
+	encodeConfig(&config, buf);
+	bytes_written = write(fd,(void*)buf, sizeof(buf));
 	printf("Done. \n");
 
 	clock_t start, end;
+	clock_t total_start, total_end;
+	int frame_counter = 0;
+	double tot;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -124,24 +136,32 @@ int main(int argc, char* argv[]){
 		if( getWindowPos(&gui_pos, GUI) != 0 ){
 			exit(EXIT_FAILURE);
 		}
-		imshow(windowName, GUI);
+		cv::imshow(windowName, GUI);
 		moveWindow(windowName, gui_pos.x, gui_pos.y-100);
-
+		
 		while(true){
-			start = clock();
-
-			capture.read(MATS[0]); 									//store image to matrix
-			cvtColor(MATS[0](controlROI), MATS[2], COLOR_BGR2HSV);	//convert frame from BGR to HSV colorspace
-			inRange(MATS[2], Scalar(63, 114, 79), Scalar(96, 255, 256), MATS[1]);
-			//inRange(MATS[2], Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), MATS[1]); //filter HSV image between values and store filtered image to MATS[1]
-			morphOps(MATS[1]); 								//eliminate noise and emphasize the filtered object(s)
-			trackFilteredObject(&ball, MATS[1], MATS[0]); 	//this function return the x and y ball coordinates
-			drawObjectV2(ball, MATS[0], false);
-
+			capture.read(MATS[0]);	//store image to matrix
+			cvtColor(MATS[0](controlROI), MATS[2], COLOR_BGR2HSV);
+			inRange(MATS[2], Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), MATS[1]);
+			morphOps(MATS[1]);
+			trackFilteredObject(&ball, MATS[1], MATS[0]);
 			cvtColor(MATS[1], MATS[1], COLOR_GRAY2BGR);
 			cv::vconcat(MATS[1], TOOL, MATS[1]);
 			cv::hconcat(MATS[1], MATS[0], GUI);
-			imshow(windowName, GUI);
+			cv::imshow(windowName, GUI);
+			if(waitKey(30) >= 0) break;
+		}
+
+		total_start = clock();
+		while(true){
+			start = clock();
+
+			capture.read(MATS[0]);	//store image to matrix
+			cvtColor(MATS[0](controlROI), MATS[2], COLOR_BGR2HSV);
+			inRange(MATS[2], Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), MATS[1]);
+			morphOps(MATS[1]);
+			trackFilteredObject(&ball, MATS[1], MATS[0]);
+			cv::imshow(windowName,MATS[1]);
 
 			if(ball.detected){
 				PIDCompute(&XPID, &YPID, ball);
@@ -155,12 +175,14 @@ int main(int argc, char* argv[]){
 					exit(EXIT_FAILURE);
 				}
 			}
-
-			if(waitKey(10) >= 0) break;
-			
+			//printf("output:  X = %d , Y = %d , dt = %.4lf\n", XPID.output[0], YPID.output[0], YPID.dt*9.1);
 			end = clock();
 			XPID.dt = YPID.dt = (float)(end - start)/CLOCKS_PER_SEC;
+
+			frame_counter++;
+			if(waitKey(1) >= 0) break;
 		}//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+		total_end = clock();
 	}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -169,35 +191,15 @@ int main(int argc, char* argv[]){
 	if (strcmp(argv[1],"-fast") == 0){//:::::::::::: MAIN LOOP :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 		
 		capture.read(MATS[0]);
-		cvtColor(MATS[0](controlROI), MATS[2], COLOR_BGR2HSV);
-		inRange(MATS[2], Scalar(63, 114, 79), Scalar(96, 255, 256), MATS[1]);
-		morphOps(MATS[1]);
-		trackFilteredObject(&ball, MATS[1], MATS[0]);
-		cvtColor(MATS[1], MATS[1], COLOR_GRAY2BGR);
-		cv::vconcat(MATS[1], TOOL, MATS[1]);
-		cv::hconcat(MATS[1], MATS[0], GUI);
+		cvRoutine(MATS, controlROI, &ball); //do all the opencv work
 
-		cv::Point gui_pos;
-		if( getWindowPos(&gui_pos, GUI) != 0 ){
-			exit(EXIT_FAILURE);
-		}
-		imshow(windowName, GUI);
-		moveWindow(windowName, gui_pos.x, gui_pos.y-100);
+		total_start = clock();
 
 		while(true){
 			start = clock();
 
-			capture.read(MATS[0]); 									//store image to matrix
-			cvtColor(MATS[0](controlROI), MATS[2], COLOR_BGR2HSV);	//convert frame from BGR to HSV colorspace
-			inRange(MATS[2], Scalar(63, 114, 79), Scalar(96, 255, 256), MATS[1]);
-			//inRange(MATS[2], Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), MATS[1]); //filter HSV image between values and store filtered image to MATS[1]
-			morphOps(MATS[1]); 								//eliminate noise and emphasize the filtered object(s)
-			trackFilteredObject(&ball, MATS[1], MATS[0]); 	//this function return the x and y ball coordinates
-
-			cvtColor(MATS[1], MATS[1], COLOR_GRAY2BGR);
-			cv::vconcat(MATS[1], TOOL, MATS[1]);
-			cv::hconcat(MATS[1], MATS[0], GUI);
-			imshow(windowName, GUI);
+			capture.read(MATS[0]);	//store image to matrix
+			cvRoutine(MATS, controlROI, &ball); //do all the opencv work
 
 			if(ball.detected){
 				PIDCompute(&XPID, &YPID, ball);
@@ -211,15 +213,23 @@ int main(int argc, char* argv[]){
 					exit(EXIT_FAILURE);
 				}
 			}
-
-			if(waitKey(5) >= 0) break;
 			
 			end = clock();
 			XPID.dt = YPID.dt = (float)(end - start)/CLOCKS_PER_SEC;
+			frame_counter++;
+			if(waitKey(10) >= 0) break;
+
 		}//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+		total_end = clock();
 	}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	tot = 7*((double)(total_end-total_start)/CLOCKS_PER_SEC);
+	printf("\nTime: %d frames\n", frame_counter);
+	printf("Time: %.3lf seconds\n", tot);
+	printf("************************\n AVERAGE FPS: %lf \n************************", 
+		(float)frame_counter/tot);
+	
 //__EXIT ROUTINE __________________________
 	printf("\n========== EXIT PROTOCOL ========== \n\n");
 

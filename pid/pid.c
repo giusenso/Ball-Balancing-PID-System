@@ -57,15 +57,15 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball ball) {
     pidX->output[1] = pidX->output[0]; 
 
     //compute new error
-    if (!pidX->inverted_mode) pidX->error[0] = (pidX->setpoint - ball.x[0]);
-    else pidX->error[0] = (ball.x[0] - pidX->setpoint);
+    if (!pidX->inverted_mode) pidX->error[0] = (pidX->setpoint - (ball.x[0]+ball.x[1]+ball.x[2])/3);
+    else pidX->error[0] = ((ball.x[0]+ball.x[1]+ball.x[2])/3 - pidX->setpoint);
 
     //Integral: update and filter
     pidX->integral += pidX->error[0] * pidX->dt;
-    pidX->integral = saturationFilter(pidX->integral, -100, +100); 
+    pidX->integral = saturationFilter(pidX->integral, -150, +150); 
 
     //Derivative: Update and filter
-     ball.smooth_dx = saturationFilter(ball.smooth_dx, -50, +50);
+    ball.smooth_dx = saturationFilter(ball.smooth_dx, -150, +150);
     if(!pidX->inverted_mode) ball.smooth_dx = -ball.smooth_dx;
     
     //output
@@ -75,7 +75,7 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball ball) {
             pidX->Ki * pidX->integral +
             pidX->Kd * (ball.smooth_dx/pidX->dt);
     
-    pidX->output[0] = saturationFilter(pidX->output[0], pidX->output[1]-600, pidX->output[1]+600);
+    pidX->output[0] = saturationFilter(pidX->output[0], pidX->output[1]-850, pidX->output[1]+850);
     pidX->output[0] = saturationFilter(pidX->output[0], pidX->min, pidX->max);
 //////////////////////////////////////////////////////////////////////////
 
@@ -85,15 +85,15 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball ball) {
     pidY->output[1] = pidY->output[0]; 
 
     //compute new error
-    if (!pidY->inverted_mode) pidY->error[0] = (pidY->setpoint - ball.y[0]);
-    else pidY->error[0] = (ball.y[0] - pidY->setpoint);
+    if (!pidY->inverted_mode) pidY->error[0] = (pidY->setpoint - (ball.y[0]+ball.y[1]+ball.y[2])/3);
+    else pidY->error[0] = ((ball.y[0]+ball.y[1]+ball.y[2])/3 - pidY->setpoint);
 
     //Integral: update and filter
     pidY->integral += pidY->error[0] * pidY->dt;
-    pidY->integral = saturationFilter(pidY->integral, -100, +100); 
+    pidY->integral = saturationFilter(pidY->integral, -150, +150); 
 
     //Derivative: Update and filter
-    ball.smooth_dy = saturationFilter(ball.smooth_dy, -50, +50);
+    ball.smooth_dy = saturationFilter(ball.smooth_dy, -150, +150);
     if(!pidY->inverted_mode) ball.smooth_dy = -ball.smooth_dy;
     
     //output
@@ -103,7 +103,7 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball ball) {
             pidY->Ki * pidY->integral +
             pidY->Kd * (ball.smooth_dy/pidY->dt);
     
-    pidY->output[0] = saturationFilter(pidY->output[0], pidY->output[1]-600, pidY->output[1]+600);
+    pidY->output[0] = saturationFilter(pidY->output[0], pidY->output[1]-850, pidY->output[1]+850);
     pidY->output[0] = saturationFilter(pidY->output[0], pidY->min, pidY->max);
 //////////////////////////////////////////////////////////////////////////
 }

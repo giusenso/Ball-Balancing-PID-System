@@ -14,6 +14,7 @@
 
 extern const char* serialPorts[5];
 
+
 //___funcion signature_________________________________
 int openSerialCommunication(int* fd);
 void closeSerialCommunication(int* fd, ServoConfig_t* config);

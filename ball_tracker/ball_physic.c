@@ -30,9 +30,11 @@ void printBall(Ball b){
 
 
 ////////////////////////////////////////////////////////////////
+/// ARRAY VERSION //////////////////////////////////////////////
 
-inline void updatePos(Ball* b, uint16_t _x, uint16_t _y){
-    b->x[7] = b->x[6];
+void updateBall(Ball* b, uint16_t _x, uint16_t _y){
+	//update X position
+	b->x[7] = b->x[6];
     b->x[6] = b->x[5];
     b->x[5] = b->x[4];
 	b->x[4] = b->x[3];
@@ -41,18 +43,7 @@ inline void updatePos(Ball* b, uint16_t _x, uint16_t _y){
 	b->x[1] = b->x[0];
 	b->x[0] = _x;
 
-    b->y[7] = b->y[6];
-    b->y[6] = b->y[5];
-	b->y[5] = b->y[4];
-	b->y[4] = b->y[3];
-	b->y[3] = b->y[2];
-	b->y[2] = b->y[1];
-	b->y[1] = b->y[0];
-	b->y[0] = _y;
-}
-
-
-inline void updateSpeed(Ball* b){
+	//update X speed
 	b->dx[7] = b->dx[6];
 	b->dx[6] = b->dx[5];
 	b->dx[5] = b->dx[4];
@@ -62,16 +53,25 @@ inline void updateSpeed(Ball* b){
 	b->dx[1] = b->dx[0];
 	b->dx[0] = b->x[0] - b->x[1];
 
+	//update X filtered speed
 	b->smooth_dx =
-		b->dx[0] * mask[0] +
-		b->dx[1] * mask[1] +
-		b->dx[2] * mask[2] +
-		b->dx[3] * mask[3] +
-		b->dx[4] * mask[4] +
-		b->dx[5] * mask[5] +
-		b->dx[6] * mask[6] +
-		b->dx[7] * mask[7];
-
+	   (b->dx[0]+
+		b->dx[1]+
+		b->dx[2]+
+		b->dx[3]+
+		b->dx[4])/5;
+	
+	//update Y position
+	b->y[7] = b->y[6];
+	b->y[6] = b->y[5];
+	b->y[5] = b->y[4];
+	b->y[4] = b->y[3];
+	b->y[3] = b->y[2];
+	b->y[2] = b->y[1];
+	b->y[1] = b->y[0];
+	b->y[0] = _y;
+	
+	//update Y speed
 	b->dy[7] = b->dy[6];
 	b->dy[6] = b->dy[5];
 	b->dy[5] = b->dy[4];
@@ -79,20 +79,20 @@ inline void updateSpeed(Ball* b){
 	b->dy[3] = b->dy[2];
 	b->dy[2] = b->dy[1];
 	b->dy[1] = b->dy[0];
-	b->y[0] = b->y[0] - b->y[1];
-
+	b->dy[0] = b->y[0] - b->y[1];
+	
+	//update Y filtered speed
 	b->smooth_dy =
-		b->dy[0] * mask[0] +
-		b->dy[1] * mask[1] +
-		b->dy[2] * mask[2] +
-		b->dy[3] * mask[3] +
-		b->dy[4] * mask[4] +
-		b->dy[5] * mask[5] +
-		b->dy[6] * mask[6] +
-		b->dy[7] * mask[7];
-
+	   (b->dy[0]+
+		b->dy[1]+
+		b->dy[2]+
+		b->dy[3]+
+		b->dy[4])/5;
 }
 
+
+
+/////////////////////////////////////////////////////////////////
 /// VECTORIAL VERSION ///////////////////////////////////////////
 
 /*	 update position and compute new speed

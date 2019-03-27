@@ -26,9 +26,9 @@ typedef struct ServoConfig {
 /*********************************************/
 /*      SERVOS                               */
 /*********************************************/
-#define   X_HALF_ANGLE      24300
-#define   Y_HALF_ANGLE      26800
-#define   ANGLE_OFFSET      5500
+#define   X_HALF_ANGLE      23100
+#define   Y_HALF_ANGLE      24600
+#define   ANGLE_OFFSET      5800
 #define	  X_MAX_ANGLE       X_HALF_ANGLE+ANGLE_OFFSET
 #define   X_MIN_ANGLE       X_HALF_ANGLE-ANGLE_OFFSET
 #define	  Y_MAX_ANGLE       Y_HALF_ANGLE+ANGLE_OFFSET
@@ -38,7 +38,7 @@ typedef struct ServoConfig {
 //_ Global Variables _______________________
 
 #define     PI                  3.1415
-#define     CONTROL_AREA        400
+#define     CONTROL_AREA        348
 #define     FRAME_WIDTH         640
 #define     FRAME_HEIGHT        480
 #define     SETPOINT_X          FRAME_WIDTH/2

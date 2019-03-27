@@ -38,7 +38,7 @@ int getWindowPos(cv::Point* point, cv::Mat mat){
  	FILE* fpipe = (FILE*)popen(command,"r");
  	char line[256];
 	memset(line, 0, sizeof(line));
- 	fgets( line, sizeof(line), fpipe );
+ 	fgets(line, sizeof(line), fpipe);
 
 	int x_res = 0, y_res = 0, i = 0, start = 0, end = 0;
 
@@ -158,10 +158,10 @@ void drawObjectV2(Ball ball, Mat &frame, bool noise_error){
 	}
 
 	if (ball.detected){	//////////////////////////////////////
-			//draw square area
+		//draw square area
 		rectangle(	frame,
-					Point(SETPOINT_X-202, SETPOINT_Y-202),
-					Point(SETPOINT_X+202, SETPOINT_Y+202),
+					Point(SETPOINT_X-CONTROL_AREA/2-1, SETPOINT_Y-CONTROL_AREA/2-1),
+					Point(SETPOINT_X+CONTROL_AREA/2+1, SETPOINT_Y+CONTROL_AREA/2+1),
 					CYAN, 3, LINE_8, 0);
 		putText(frame, "BALL FOUND", Point(123,32), 1, 1, GREEN, 2);
 
@@ -170,7 +170,7 @@ void drawObjectV2(Ball ball, Mat &frame, bool noise_error){
 		rectangle(	frame,
 					Point(SETPOINT_X-30, SETPOINT_Y-30),
 					Point(SETPOINT_X+30, SETPOINT_Y+30),
-					ORANGE, 2, LINE_4, 0);
+					ORANGE, 1, LINE_4, 0);
 
 
 		//draw ball lines for position spot
@@ -274,11 +274,13 @@ void trackFilteredObject(Ball* ball, Mat threshold, Mat &cameraFeed){
                 if(area>MIN_OBJECT_AREA && area<MAX_OBJECT_AREA && area>refArea){
 					if(ball->detected){
 						//circleDetector(cameraFeed, threshold);
-						updateBall_VEC(ball, (moment.m10/area)+120, (moment.m01/area)+40);
+						updateBall_VEC(ball,(moment.m10/area)+(FRAME_WIDTH-CONTROL_AREA)/2, 
+											(moment.m01/area)+(FRAME_HEIGHT-CONTROL_AREA)/2);
 						refArea = area;
 					}
 					else {
-						*ball = createBall((moment.m10/area)+120,(moment.m01/area)+40);
+						*ball = createBall(	(moment.m10/area)+(FRAME_WIDTH-CONTROL_AREA)/2,
+											(moment.m01/area)+(FRAME_HEIGHT-CONTROL_AREA)/2);
 						ball->detected = true;
 					}
 				}
