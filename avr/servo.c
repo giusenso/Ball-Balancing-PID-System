@@ -1,7 +1,9 @@
 #include <util/delay.h>
 #include <avr/io.h>
+#include <avr/interrupt.h>
+
 #include <stdint.h>
-//#include "../utils.h"
+#include "../utils.h"
 #include "../serial/serial.h" /*servo specs here*/
 
 #define TCCRA_MASK	(1<<WGM11)|(1<<COM1A1)|(1<<COM1B1);	//NON Inverted PWM
@@ -55,6 +57,16 @@ uint8_t UART_getString(uint8_t* buf){
     }
   }
 }
+
+uint8_t UART_getManyString(uint8_t* buf, uint8_t N){
+	uint8_t i = 0;	
+	uint8_t bytes_read = 0;
+	while(i<N){
+		bytes_read += UART_getString(buf);
+		i++;
+	}
+	return bytes_read;
+}
 //---------------------------------------------------------
 void UART_putString(uint8_t* buf){
   while(*buf){
@@ -88,6 +100,21 @@ inline uint16_t decodeX(uint8_t* buf){
 inline uint16_t decodeY(uint8_t* buf){
 	return( (buf[3]<<8) | buf[2] );
 }
+/*
+void motionTesting(){
+  uint16_t pulses[6] = { 22500, 2350, 24500, 25500, 24500, 2350 };
+  uint8_t i=0, n=50;
+  for (uint8_t j=0; j<n ; i++){
+    OCR3A = pulses[i];
+    OCR4A = pulses[i];
+    if( i==5 ) i=0;
+    else i++;
+    _delay_ms(100);
+  }
+}
+*/
+
+
 //---------------------------------------------------------
 void PWM_init(void){
   /*	ServoX = Timer 3 = digital pin 5 = DDRE
@@ -113,38 +140,54 @@ void PWM_init(void){
 //---------------------------------------------------------
 
 //*** M A I N ********************************************/
+	
+uint8_t buf[5];
+volatile uint8_t running, msg_rcv;
+	  	
 int main(void){
-  
-  const uint8_t mask=(1<<7);
+	cli();
+
+	//set flags
+	running = msg_rcv = 0;
+	_delay_ms(100);
+	buf[0]=buf[1]=buf[2]=buf[3]=buf[4] = 0x5D;
+
+  const uint8_t mask = (1<<7);
   DDRB |= mask;
+	PORTB = mask;
+	
+	UART_init();
+	UART_getManyString(buf, 5);
+	_delay_ms(100);
+	
+	PWM_init();
+  OCR3A = 24000;
+  OCR4A = 24000;
+	
+	PORTB = 0;
+	sei();
+	running = 1;
 
-  UART_init();
-  //if(!handShake()){ exit() }; //to be tested
+	while(running){ ////////////////////////////////// 
+		if(msg_rcv){
+			PORTB = mask;
+			_delay_ms(10);
+			PORTB = 0;
+			msg_rcv = 0;
+		}
+		continue;
+	} ////////////////////////////////////////////////
+}
 
-  PWM_init();
-  UART_putString((uint8_t*)"Ready to control servos.\n");
-
-  uint8_t buf[5] = {0,0,0,0,0}; //[ x , x , y , y , '\n' ]
-  
-  OCR3A = (uint16_t)23000;
-  OCR4A = (uint16_t)27000;
-  _delay_ms(200);
-  OCR3A = (uint16_t)27000;
-  OCR4A = (uint16_t)23000;
-
-  UART_getString(buf);
-  UART_getString(buf);
-
-  while(1) {
-    UART_getString(buf);
-    OCR3A = decodeX(buf);
-    OCR4A = decodeY(buf);
-	PORTB=mask;
-	PORTB=0;
-  }
+ISR(USART0_RX_vect){
+	UART_getString(buf);
+  OCR3A = decodeX(buf);
+  OCR4A = decodeY(buf);
+	msg_rcv = 1;
 }
 
 /********************************************
 *	@Author: .                        		*
 *											*
 *********************************************/
+
