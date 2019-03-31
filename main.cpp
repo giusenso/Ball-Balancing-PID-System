@@ -326,7 +326,6 @@ int main(int argc, char* argv[]){
 	MATS[0].release();
 	MATS[1].release();
 	MATS[2].release();
-	TOOL.release();
 	GUI.release();
 	printf("Done.\n");
 
