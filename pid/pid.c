@@ -1,24 +1,38 @@
 
-/********************************************
-*	@Author: Giuseppe Sensolini Arra'		*
-*											*
-*	PID CONTROL MODULE				        *
-*	task:									*
-*		- define PID structure  			*
-*		- compute PID           			*
-*		- debug print   					*
-*											*
-*********************************************/
+/**
+ * @file pid.c
+ * @author Giuseppe Sensolini [https://github.com/JiuSenso/Ball-Balancing-PID-System.git]
+ * 
+ * @brief   PID CONTROL MODULE
+ *          - initialize PID structure
+ *          - compute PID
+ *          - anti-windup filter
+ * 
+ * 
+ * @version 1.4
+ * @date 2019-01-24
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "pid.h"
 
-//_ Function Declarations _____________________
-
-/* create() **********************************************************************/
+/**
+ * @brief initialize PID data structure
+ * 
+ * @param _Kp proportional gain
+ * @param _Ki integrative gain
+ * @param _Kd derivative gain
+ * @param setpoint target
+ * @param mode true=>inverted false=>non-inverted
+ * @param min_angle minimum servo pulse
+ * @param max_angle maximum servo pulse
+ * @return PID_t data structure
+ */
 PID_t createPID(float _Kp, float _Ki, float _Kd,
                 uint16_t setpoint, bool mode,
                 uint16_t min_angle, uint16_t max_angle){
@@ -39,19 +53,29 @@ PID_t createPID(float _Kp, float _Ki, float _Kd,
     return pid;
 }
 
-/* Compute() **********************************************************************
- *   This function should be called every time "void loop()" executes.
+
+/**
+ * @brief   (pid, ball) ==> P+I+D
+ *   This function should be called every time "loop()" executes.
  *   the function will decide for itself whether a new
  *   pid Output needs to be computed.
  * 
- *   note: error is expressed in pixels, control should be a duty cicle,
- *   so we need to map this gap with constant:
- *       W(multiply) and Q(offset) 
- **********************************************************************************/
-//  (pid, ball) ==> P+I+D
+ *   note[1]: error is expressed in pixels, control should be a pulse width
+ * 
+ *   note[2]: this could be split in two functions that can run parallel,
+ *            but thread switch time is probably greater than compute time.
+ *            [in any case will be tested]
+ * 
+ * @param pidX 
+ * @param pidY 
+ * @param ball 
+ */
 
-void PIDCompute(PID_t* pidX, PID_t* pidY, Ball ball) {
-/// SERVO X //////////////////////////////////////////////////////////////
+void PIDCompute(PID_t* pidX, PID_t* pidY, Ball_t ball) {
+
+/*=================================================================================*/
+/*      SERVO X     */ 
+
     //set old error and output
     pidX->error[1] = pidX->error[0];
     pidX->output[1] = pidX->output[0]; 
@@ -74,12 +98,15 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball ball) {
             pidX->Kp * pidX->error[0] +
             pidX->Ki * pidX->integral +
             pidX->Kd * (ball.smooth_dx/pidX->dt);
-    
+
+    //filter    
     pidX->output[0] = saturationFilter(pidX->output[0], pidX->output[1]-850, pidX->output[1]+850);
     pidX->output[0] = saturationFilter(pidX->output[0], pidX->min, pidX->max);
-//////////////////////////////////////////////////////////////////////////
 
-/// SERVO Y //////////////////////////////////////////////////////////////
+
+/*=================================================================================*/
+/*      SERVO Y      */ 
+
     //set old error and output
     pidY->error[1] = pidY->error[0];
     pidY->output[1] = pidY->output[0]; 
@@ -103,22 +130,34 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball ball) {
             pidY->Ki * pidY->integral +
             pidY->Kd * (ball.smooth_dy/pidY->dt);
     
+    //filter 
     pidY->output[0] = saturationFilter(pidY->output[0], pidY->output[1]-850, pidY->output[1]+850);
     pidY->output[0] = saturationFilter(pidY->output[0], pidY->min, pidY->max);
-//////////////////////////////////////////////////////////////////////////
+//===============================================================================
 }
 
 
-//_________________________________________________________________________
 
-// Correct saturated values
+/**
+ * @brief correct saturated values
+ * 
+ * @param value 
+ * @param T_MIN 
+ * @param T_MAX 
+ * @return short 
+ */
 inline short saturationFilter(short value , short T_MIN, short T_MAX){
     if (value <= T_MIN) return T_MIN;
     if (value >= T_MAX) return T_MAX;
     else return value;
 }
-//_________________________________________________________________________
-//print routine for debugging
+
+
+/**
+ * @brief debug print
+ * 
+ * @param pid 
+ */
 void printPID(PID_t pid){
     printf("*********************************************\n\
             KP = %.2lf , Ki = %.2lf, KD = %.2lf \n\

@@ -1,3 +1,19 @@
+/**
+* @file serial.h
+* @author Giuseppe Sensolini
+
+* @brief SERIAL COMMUNICATION
+* 		- open serial communication
+*		- close serial communication
+*		- packet encode/decode
+*		- debug print
+*
+* @date 2019-01-11
+* 
+* @copyright Copyright (c) 2019
+* 
+*/
+
 #ifndef SERIAL_PORT_H
 #define SERIAL_PORT_H
 

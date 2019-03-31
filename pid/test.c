@@ -1,10 +1,21 @@
+/**
+ * @file test.c
+ * @author your name (you@domain.com)
+ * @brief 
+ * @version 0.1
+ * @date 2019-03-30
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "pid.h"
 
 /* derivative filter
-*       TESTING UNIT: average low pass filtering
+*  TESTING UNIT: average low pass filtering
 *
 */
 
@@ -38,9 +49,7 @@ int main(){/////////////////////////////////////////////////////////////////////
     x = smoothingFilter(pos, T);
     x = saturationFilter(x, -50, 50);
     printf("pos = {100,60,0,0,1,1,1,1}\nresult %d\n\n", x);
-        
-
-
+    
 
     return 0;
 }

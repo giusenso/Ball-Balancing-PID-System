@@ -1,3 +1,21 @@
+/**
+ * @file avr.c
+ * @author Giuseppe Sensolini [https://github.com/JiuSenso/Ball-Balancing-PID-System.git]
+ * @brief 
+ *      contains all the AVR work needed for this project.
+ *      provide this feature:
+ *      - read and write (UART)
+ *      - packet decode
+ *      - Pulse width modulation
+ *      - ISR (Interrupt Service Routine)
+ *      - led blink on receipt
+ * 
+ * @compiler: avr-libc
+ * 
+ * @date 2019-01-22
+ * 
+ */
+
 #include <util/delay.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -92,6 +110,7 @@ void UART_putString(uint8_t* buf){
     }
     else return 0;
 }*/
+
 //---------------------------------------------------------
 inline uint16_t decodeX(uint8_t* buf){
 	return( (buf[1]<<8) | buf[0] );
@@ -100,6 +119,8 @@ inline uint16_t decodeX(uint8_t* buf){
 inline uint16_t decodeY(uint8_t* buf){
 	return( (buf[3]<<8) | buf[2] );
 }
+
+
 /*
 void motionTesting(){
   uint16_t pulses[6] = { 22500, 2350, 24500, 25500, 24500, 2350 };
@@ -139,55 +160,64 @@ void PWM_init(void){
 }
 //---------------------------------------------------------
 
-//*** M A I N ********************************************/
+/*
+ * INTERRUPT SERVICE ROUTINE
+ */
+ISR(USART0_RX_vect){
+	UART_getString(buf);
+  OCR3A = (buf[1]<<8) | buf[0]; //decode X
+  OCR4A = (buf[3]<<8) | buf[2]; //decode Y
+	msg_rcv = 1;
+}
+
+//========================================================/
+//::::: M A I N ::::::::::::::::::::::::::::::::::::::::::/
+//========================================================/
 	
 uint8_t buf[5];
 volatile uint8_t running, msg_rcv;
 	  	
 int main(void){
-	cli();
+	cli();  //interrupts disabled
 
 	//set flags
 	running = msg_rcv = 0;
 	_delay_ms(100);
+
 	buf[0]=buf[1]=buf[2]=buf[3]=buf[4] = 0x5D;
 
+  //led light up
   const uint8_t mask = (1<<7);
   DDRB |= mask;
 	PORTB = mask;
 	
 	UART_init();
-	UART_getManyString(buf, 5);
+	UART_getManyString(buf, 3); //burn the first packet
 	_delay_ms(100);
 	
 	PWM_init();
-  OCR3A = 24000;
-  OCR4A = 24000;
+  OCR3A = 24000;  // X servo
+  OCR4A = 24000;  // Y servo
 	
 	PORTB = 0;
-	sei();
+	sei();  //interrupts enabled
 	running = 1;
 
-	while(running){ ////////////////////////////////// 
+  /////////////////////////////////////
+	while(running){  
+
 		if(msg_rcv){
-			PORTB = mask;
+			PORTB = mask; //led blink
 			_delay_ms(10);
 			PORTB = 0;
 			msg_rcv = 0;
 		}
+    
 		continue;
-	} ////////////////////////////////////////////////
+	} ///////////////////////////////////
+
 }
 
-ISR(USART0_RX_vect){
-	UART_getString(buf);
-  OCR3A = decodeX(buf);
-  OCR4A = decodeY(buf);
-	msg_rcv = 1;
-}
 
-/********************************************
-*	@Author: .                        		*
-*											*
-*********************************************/
+//========================================================/
 

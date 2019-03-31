@@ -1,3 +1,14 @@
+/**
+ * @file utils.h
+ * @author Giuseppe Sensolini
+ * 
+ * @brief provide basic data structures and global variables
+ * @date 2019-01-29
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
+
 #ifndef UTILS_H
 #define UTILS_H
 
@@ -8,10 +19,12 @@
 #include <errno.h>
 #include <string.h>
 
-//_ Data Structure _______________________
 #define     bool        int
 #define     false       0
 #define     true        1
+
+//_ Data Structure _______________________
+
 
 typedef struct Point_t{
     uint16_t    x;
@@ -23,9 +36,12 @@ typedef struct ServoConfig {
     uint16_t     servoY;
 } ServoConfig_t;
 
-/*********************************************/
-/*      SERVOS                               */
-/*********************************************/
+
+//_ Global Variables _______________________
+
+
+/*      servos                               */
+
 #define   X_HALF_ANGLE      23100
 #define   Y_HALF_ANGLE      24600
 #define   ANGLE_OFFSET      5800
@@ -33,9 +49,9 @@ typedef struct ServoConfig {
 #define   X_MIN_ANGLE       X_HALF_ANGLE-ANGLE_OFFSET
 #define	  Y_MAX_ANGLE       Y_HALF_ANGLE+ANGLE_OFFSET
 #define   Y_MIN_ANGLE       Y_HALF_ANGLE-ANGLE_OFFSET
-/*********************************************/
 
-//_ Global Variables _______________________
+
+/*      other                                */
 
 #define     PI                  3.1415
 #define     CONTROL_AREA        348
@@ -43,8 +59,6 @@ typedef struct ServoConfig {
 #define     FRAME_HEIGHT        480
 #define     SETPOINT_X          FRAME_WIDTH/2
 #define     SETPOINT_Y          FRAME_HEIGHT/2
-
-
 
 
 #endif

@@ -1,20 +1,23 @@
-/********************************************
-*	@Author: Giuseppe Sensolini Arra'		*
-*	@Date: 02.2019							*
-*											*
-*	COMPUTER VISION MODULE					*
-*	libs: opencv 3.4.1						*
-*	task:									*
-*		- detect object with HSV mask		*
-*		- circle detection					*
-*		- mask and PID tracksbars			*
-*		- open camara and get video stream	*
-*		- draw data to windows				*
-*		- Morphological trasformations		*
-*		- Track filtered object 			*
-*		- debug print 						*
-*											*
-*********************************************/
+/**
+ * @file ball_tracker.cpp
+ * @author Giuseppe Sensolini [https://github.com/JiuSenso/Ball-Balancing-PID-System.git]
+ * 
+ * @brief 
+ * 		- open camara and get video stream
+ * 		- hsv mask tracksbars
+ * 		- detect object with HSV mask
+ * 		- Morphological trasformations
+ * 		- draw data to windows
+ * 		- circle detection
+ * 		- get screen size and compute window position
+ * 
+ * @version 1.2
+ * @date 2019-02-16
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
+
 
 #include "ball_tracker.h"
 
@@ -25,14 +28,17 @@ int S_MAX = 256;
 int V_MIN = 0;
 int V_MAX = 256;
 
-const String windowName = "Original Image";
-const String trackbarWindowName = "Trackbars";
+const String windowName = "Camera Feed";
+const String trackbarWindowName = "HSV Trackbars";
 const String gainTrackbarWindowName = "PID GAINS";
 
-/*************************************************************************************
- *--------  drawing functions -------------------------------------------------------*
- *************************************************************************************/
-
+/**
+ * @brief Get the window position based on screen size
+ * 
+ * @param point 
+ * @param mat 
+ * @return -1 in case of error, else 0
+ */
 int getWindowPos(cv::Point* point, cv::Mat mat){
 	const char* command = "xrandr | grep '*'";
  	FILE* fpipe = (FILE*)popen(command,"r");
@@ -84,18 +90,29 @@ int getWindowPos(cv::Point* point, cv::Mat mat){
 	return 0;
 }
 
+/**
+ * @brief called whenever a trackbar position is changed
+ */
 void on_trackbar( int, void* ){
-	//This function gets called whenever a
-	// trackbar position is changed
+	//empty function
 }
 
+/**
+ * @brief convert integer to string
+ * 
+ * @param number 
+ * @return String 
+ */
 String intToString(int number){
 	std::stringstream ss;
 	ss << number;
 	return ss.str();
 }
 
-//________________________________________________________________________________
+/**
+ * @brief Create a Trackbars object for HSV mask
+ * 
+ */
 void createTrackbars(){
 
 	//create window for trackbars
@@ -123,7 +140,12 @@ void createTrackbars(){
     createTrackbar( "V_MAX", trackbarWindowName, &V_MAX, V_MAX, on_trackbar );
 }
 
-//________________________________________________________________________________
+/**
+ * @brief Create a Gain Trackbars object for PID gainss
+ * 		!!!unused function!!!
+ * @param XPID 
+ * @param YPID 
+ */
 void createGainTrackbars(PID_t* XPID, PID_t* YPID){
 
     namedWindow(gainTrackbarWindowName, 0);
@@ -145,8 +167,15 @@ void createGainTrackbars(PID_t* XPID, PID_t* YPID){
 }
 
 
-//_ Draw version 2 ____________________________
-void drawObjectV2(Ball ball, Mat &frame, bool noise_error){
+/**
+ * @brief DRAW VERSION V2
+ * 		second version of draw
+ * 
+ * @param ball Ball_t object
+ * @param frame where to draw
+ * @param noise_error set alway false
+ */
+void drawObjectV2(Ball_t ball, Mat &frame, bool noise_error){
 
 	if(noise_error){	//////////////////////////////////////
 		rectangle(	frame,
@@ -188,7 +217,8 @@ void drawObjectV2(Ball ball, Mat &frame, bool noise_error){
 		for (int i=1 ; i<8 ; i++){
 			circle( frame, Point(ball.x[i], ball.y[i]), 2, ORANGE, -1, 8, 0 );
 
-		//plotPos(ball, frame, 522, FRAME_HEIGHT/2);
+		
+		plotPos(ball, frame, 522, FRAME_HEIGHT/2);
 
 		}
 		//display ball info
@@ -213,7 +243,16 @@ void drawObjectV2(Ball ball, Mat &frame, bool noise_error){
 
 }
 
-inline void plotPos(Ball b, Mat &frame, uint16_t x, uint16_t y){
+/**
+ * @brief Draw a real time chart
+ * [called in drawObjectV2]
+ * 
+ * @param b Ball_t object
+ * @param frame where to draw
+ * @param x
+ * @param y 
+ */
+inline void plotPos(Ball_t b, Mat &frame, uint16_t x, uint16_t y){
 	putText(frame, "X", Point(x+5, y-120), 1, 1, DARK_GREEN , 2);
 	putText(frame, "Y", Point(x+5, y+80), 1, 1, DARK_GREEN , 2);
 	line(frame, Point(x, y-100), Point(x+200, y-100), CYAN, 2);
@@ -227,7 +266,12 @@ inline void plotPos(Ball b, Mat &frame, uint16_t x, uint16_t y){
 	}
 }
 
-//create structuring element that will be used to "dilate" and "erode" image.
+
+/**
+ * @brief create structuring element that will be used to "dilate" and "erode" image
+ * 
+ * @param thresh Threshold cv::Mat
+ */
 void morphOps(Mat &thresh){
 
 	//the element chosen here is a 3px by 3px rectangle
@@ -249,7 +293,15 @@ void morphOps(Mat &thresh){
 	dilateElement.release();
 }
 
-void trackFilteredObject(Ball* ball, Mat threshold, Mat &cameraFeed){
+/**
+ * @brief Track Filtered Object
+ * detect the ball from the treshold Mat,
+ * and call updateBall()/createBall() function.
+ * 
+ * @param ball Ball_t object
+ * @param threshold 
+ */
+void trackFilteredObject(Ball_t* ball, Mat threshold){
 	//bool noise_error = false;
 
 	//these two vectors needed for output of findContours
@@ -274,7 +326,7 @@ void trackFilteredObject(Ball* ball, Mat threshold, Mat &cameraFeed){
                 if(area>MIN_OBJECT_AREA && area<MAX_OBJECT_AREA && area>refArea){
 					if(ball->detected){
 						//circleDetector(cameraFeed, threshold);
-						updateBall_VEC(ball,(moment.m10/area)+(FRAME_WIDTH-CONTROL_AREA)/2, 
+						updateBall(ball,(moment.m10/area)+(FRAME_WIDTH-CONTROL_AREA)/2, 
 											(moment.m01/area)+(FRAME_HEIGHT-CONTROL_AREA)/2);
 						refArea = area;
 					}
@@ -297,6 +349,13 @@ void trackFilteredObject(Ball* ball, Mat threshold, Mat &cameraFeed){
 	}
 }
 
+/**
+ * @brief Use HoughCircles() to find ball
+ * [not actually used]
+ * 
+ * @param cameraFeed 
+ * @param threshold 
+ */
 void circleDetector(Mat cameraFeed, Mat threshold){
 
 	Mat gray;
@@ -320,8 +379,16 @@ void circleDetector(Mat cameraFeed, Mat threshold){
 }
 
 
+/**
+ * @brief draw in the blank space
+ * [to be implemented...]
+ * 
+ * @param DATA blank space
+ * @param XPID 
+ * @param YPID 
+ */
 void drawLiveData(Mat &DATA, PID_t XPID, PID_t YPID){
 	putText(DATA, intToString(XPID.output[0]), Point(5,25), 1, 2, BLUE, 2);
 	putText(DATA, intToString(YPID.output[0]), Point(205,25), 1, 2, BLUE, 2);
-	
+	//...
 }

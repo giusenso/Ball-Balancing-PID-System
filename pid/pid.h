@@ -1,3 +1,20 @@
+/**
+ * @file pid.h
+ * @author Giuseppe Sensolini [https://github.com/JiuSenso/Ball-Balancing-PID-System.git]
+ * 
+ * @brief   PID CONTROL MODULE
+ *          - initialize PID structure
+ *          - compute PID
+ *          - anti-windup filter
+ * 
+ * 
+ * @version 1.4
+ * @date 2019-01-24
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
+
 #ifndef PID_H
 #define PID_H
 

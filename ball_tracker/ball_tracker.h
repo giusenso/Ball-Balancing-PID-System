@@ -1,3 +1,23 @@
+/**
+ * @file ball_tracker.h
+ * @author Giuseppe Sensolini [https://github.com/JiuSenso/Ball-Balancing-PID-System.git]
+ * 
+ * @brief 
+ * 		- open camara and get video stream
+ * 		- hsv mask tracksbars
+ * 		- detect object with HSV mask
+ * 		- Morphological trasformations
+ * 		- draw data to windows
+ * 		- circle detection
+ * 		- get screen size and compute window position
+ * 
+ * @version 1.2
+ * @date 2019-02-16
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
+
 #ifndef BALLTRACKER_H
 #define BALLTRACKER_H
 
@@ -5,18 +25,20 @@
 #include <opencv2/highgui.hpp>
 
 #include "../pid/pid.h"
-//#include "ball_physic.h"
 
 using namespace cv;
 
+//box area to be controlled
 #define 	BOX_SIZE			200
-#define     MAX_NUM_OBJECTS     20	//max number of objects to be detected in frame
+
+//max number of objects to be detected in frame
+#define     MAX_NUM_OBJECTS     10
 
 //minimum and maximum object area
 #define     MIN_OBJECT_AREA     14*14
 #define     MAX_OBJECT_AREA     FRAME_HEIGHT*FRAME_WIDTH/5
 
-//Colors
+//some colors
 const Scalar RED =          Scalar(0, 0, 251);
 const Scalar GREEN =        Scalar(24, 244, 0);
 const Scalar BLUE =         Scalar(205, 45, 0);
@@ -43,30 +65,25 @@ extern const String trackbarWindowName;
 extern const String gainTrackbarWindowName;
 
 
-typedef struct mouseParams{
-	Mat _mat;
-	int* _H_MIN;
-	int* _H_MAX;
-	int* _S_MIN;
-	int* _S_MAX;
-	int* _V_MIN;
-	int* _V_MAX;
-}mouseParams_t;
-//_ Function Signature _________________________
-
 int getWindowPos(cv::Point* point , cv::Mat mat);
+
 void on_trackbar( int, void* );
+
 String intToString(int number);
 
 void createTrackbars();
+
 void createGainTrackbars(PID_t* XPID, PID_t* YPID);
 
 void drawObjectV2(Ball b, Mat &frame, bool noise_error);
+
 void drawLiveData(Mat &DATA, PID_t XPID, PID_t YPID);
+
 void plotPos (Ball b, Mat &frame, uint16_t _x, uint16_t _y);
 
 void morphOps(Mat &thresh);
-void trackFilteredObject(Ball* b, Mat threshold, Mat &cameraFeed);
+
+void trackFilteredObject(Ball* b, Mat threshold);
 
 void circleDetector(Mat cameraFeed, Mat threshold);
 

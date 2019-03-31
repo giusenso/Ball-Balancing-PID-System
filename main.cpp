@@ -2,7 +2,8 @@
  * @file main.cpp
  * @author Giuseppe Sensolini
  * 
- * @brief 	BALL BALANCING PID SYSTEM
+ * @brief 		BALL BALANCING PID SYSTEM
+ * @repository 	https://github.com/JiuSenso/Ball-Balancing-PID-System.git
  * 
  * 		after compiling it(see README.md for details)
  * 		can be launched with different option flags:
@@ -158,7 +159,7 @@ int main(int argc, char* argv[]){
 		cvtColor(MATS[0](controlROI), MATS[2], COLOR_BGR2HSV);
 		inRange(MATS[2], Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), MATS[1]);
 		morphOps(MATS[1]);
-		trackFilteredObject(&ball, MATS[1], MATS[0]);
+		trackFilteredObject(&ball, MATS[1]);
 		cvtColor(MATS[1], MATS[1], COLOR_GRAY2BGR);
 		cv::vconcat(MATS[1], TOOL, MATS[1]);
 		cv::hconcat(MATS[1], MATS[0], GUI);
@@ -170,28 +171,30 @@ int main(int argc, char* argv[]){
 		}
 		cv::imshow(windowName, GUI);
 		moveWindow(windowName, gui_pos.x, gui_pos.y-100);
+		total_start = clock();
 
 //===============================================================================================
 //:::::::::::::: MAIN LOOP ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 //===============================================================================================
-		total_start = clock();
+		
 		while(true){
 			start = clock();
 
 			capture.read(MATS[0]);	//store image to matrix
+
 			cvtColor(MATS[0](controlROI), MATS[2], COLOR_BGR2HSV);
+
 			inRange(	MATS[2],
 						Scalar(H_MIN, S_MIN, V_MIN),
 						Scalar(H_MAX, S_MAX, V_MAX),
 						MATS[1]
 					);
-			// ...
+			
 			morphOps(MATS[1]);
 
-			// ...
-			trackFilteredObject(&ball, MATS[1], MATS[0]);
+			trackFilteredObject(&ball, MATS[1]);
 
-			cv::imshow(windowName,MATS[1]); //use cvRoutine() for extended gui
+			cv::imshow(windowName,MATS[1]); //or use cvRoutine() for extended gui
 
 			if(ball.detected){
 
@@ -278,7 +281,7 @@ int main(int argc, char* argv[]){
 					cvtColor(MATS[0](controlROI), MATS[2], COLOR_BGR2HSV);
 					inRange(MATS[2], Scalar(H_MIN, S_MIN, V_MIN), Scalar(H_MAX, S_MAX, V_MAX), MATS[1]);
 					morphOps(MATS[1]);
-					trackFilteredObject(&ball, MATS[1], MATS[0]);
+					trackFilteredObject(&ball, MATS[1]);
 					cvtColor(MATS[1], MATS[1], COLOR_GRAY2BGR);
 					cv::vconcat(MATS[1], TOOL, MATS[1]);
 					cv::hconcat(MATS[1], MATS[0], GUI);

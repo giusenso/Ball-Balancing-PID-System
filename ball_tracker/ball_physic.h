@@ -1,3 +1,14 @@
+/**
+ * @file ball_physic.h
+ * @author Giuseppe Sensolini [https://github.com/JiuSenso/Ball-Balancing-PID-System.git]
+ * @brief Ball modelling and computation functions
+ * @version 1.1
+ * @date 2019-03-05
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
+
 #ifndef BALLPHYSIC_H
 #define BALLPHISIC_H
 
@@ -11,9 +22,6 @@
 #define     STORE       _mm_storeu_si128
 #define     MUL         _mm_mulhi_epi16 
 
-/*************************************************************************************
- *------- Ball physics modelling and computation functions --------------------------*
- *************************************************************************************/
 typedef struct Ball {
     bool        detected;
     uint16_t    x[8];
@@ -22,23 +30,17 @@ typedef struct Ball {
     short       dy[8];
     short       smooth_dx;
     short       smooth_dy;
-} Ball;
+} Ball_t;
 
-const float mask[7] = { 0.38, 0.25, 0.15, 0.10, 0.06, 0.04, 0.02 };
 
-Ball createBall(uint16_t _x, uint16_t _y);
-void printBall(Ball b);
+Ball_t createBall(uint16_t _x, uint16_t _y);
 
-void updateBall_VEC(Ball* b, uint16_t _x, uint16_t _y); 
+void printBall(Ball_t b);
 
-void updatePosVec(Ball* b, uint16_t _x, uint16_t _y);
-void updatePos(Ball* b, uint16_t _x, uint16_t _y);
+void updateBall(Ball_t* b, uint16_t _x, uint16_t _y);
 
-void updateSpeed(Ball* b);
-void updateSpeedVec(Ball* b);
+void updatePosVec(Ball_t* b, uint16_t _x, uint16_t _y);
 
-//void frameError(Ball* b);
-float radiansToDegree(float radians);
 
 
 #endif

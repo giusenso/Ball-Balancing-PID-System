@@ -1,3 +1,19 @@
+/**
+* @file serial.c
+* @author Giuseppe Sensolini [https://github.com/JiuSenso/Ball-Balancing-PID-System.git]
+*
+* @brief SERIAL COMMUNICATION
+* 		- open serial communication
+*		- close serial communication
+*		- packet encode/decode
+*		- debug print
+*
+* @date 2019-01-11
+* 
+* @copyright Copyright (c) 2019
+* 
+*/
+
 
 /********************************************
 *	@Author: Giuseppe Sensolini Arra'		*
@@ -45,8 +61,12 @@ int openSerialCommunication(int* fd){
 	return -1;
 }
 
-//-------------------------------------------------------
-// Setting the Attributes of the serial port using termios structure
+
+/**
+ * @brief Set serial port attributes using termios structure
+ * 
+ * @param fd file descriptor
+ */
 void setSerialAttributes(int fd){
 	struct termios SerialPortSettings;	/* Create the structure                          */
 
@@ -77,7 +97,12 @@ void setSerialAttributes(int fd){
 	}
 }
 
-//-------------------------------------------------------
+/**
+ * @brief Close serial communication
+ * 
+ * @param fd file descriptor
+ * @param config servo config
+ */
 void closeSerialCommunication(int* fd, ServoConfig_t* config){
 
 	uint8_t buf[5];
@@ -101,7 +126,12 @@ void closeSerialCommunication(int* fd, ServoConfig_t* config){
 	}
 }
 
-//-------------------------------------------------------
+/**
+ * @brief ServoConfig_t* ==> uint8_t*
+ * 	encode 16 bytes structure to 8 bytes buffer
+ * @param config 16 bytes structure
+ * @param buf 8 bytes buffer
+ */
 // SERVOCONFIG_T* ===> UINT8_T*
 void encodeConfig(ServoConfig_t* config, uint8_t* buf){
 	buf[0] = (config->servoX) & 0xFF;	//low bits
@@ -110,7 +140,12 @@ void encodeConfig(ServoConfig_t* config, uint8_t* buf){
 	buf[3] = (config->servoY) >> 8;		//high bits
 	buf[4] = '\n';
 }
-//-------------------------------------------------------
+
+
+/**
+ * @brief handshake Routine
+ * 
+ */
 /*
 bool handShake(int* fd){	//to be tested
 	printf("\n HANDSHACKING: ");
@@ -137,13 +172,23 @@ bool handShake(int* fd){	//to be tested
 	return true;
 }
 */
-//-------------------------------------------------------
+
+/**
+ * @brief debug print
+ * 
+ * @param config ServoConfig_t
+ */
 void printServoConfig(ServoConfig_t config){
 	printf("\n   ======================================\n");
 	printf("  |  servoX: %d   ||   servoY: %d  |\n", config.servoX, config.servoY);
 	printf("   ======================================\n");
 }
-//-------------------------------------------------------
+
+/**
+ * @brief debug print
+ * 
+ * @param buf 
+ */
 void printEncodedPack(uint8_t* buf){
 	printf("\n   =========================================\n  |");
 	printf(" 0x%02X  |", buf[0]);
