@@ -19,13 +19,15 @@
  * @param which row to read. Start from one.
  */
 void arrayFromTextFile(const char* file_name, float* buf, int row){
+	int ret __attribute__((unused));
 	unsigned short counter = row;	
 	char str[256] = {};
 	unsigned short start=0, end=0, k=0, i=0;
+	
 
 	FILE* file = fopen(file_name, "r");
 	while( counter>0 ) {
-		fscanf(file, "%s" , str);
+		ret = fscanf(file, "%s" , str);
 		counter--;
 	}
 
@@ -49,6 +51,7 @@ void arrayFromTextFile(const char* file_name, float* buf, int row){
 		free(c_buf);
 		k++;
 	}
+	return;
 }
 
 
@@ -66,4 +69,5 @@ void stringToFile(const char* file_name, char* buf){
 	}
 	fprintf(file, "%s", buf);
 	fclose(file);
+	return;
 }

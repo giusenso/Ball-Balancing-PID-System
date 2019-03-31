@@ -18,7 +18,6 @@
  * 
  */
 
-
 #include "ball_tracker.h"
 
 int H_MIN = 0;
@@ -40,11 +39,12 @@ const String gainTrackbarWindowName = "PID GAINS";
  * @return -1 in case of error, else 0
  */
 int getWindowPos(cv::Point* point, cv::Mat mat){
+	char* ret __attribute__((unused));
 	const char* command = "xrandr | grep '*'";
  	FILE* fpipe = (FILE*)popen(command,"r");
  	char line[256];
 	memset(line, 0, sizeof(line));
- 	fgets(line, sizeof(line), fpipe);
+ 	ret = fgets(line, sizeof(line), fpipe);
 
 	int x_res = 0, y_res = 0, i = 0, start = 0, end = 0;
 
