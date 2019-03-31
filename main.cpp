@@ -8,7 +8,7 @@
  * 		after compiling it(see README.md for details)
  * 		can be launched with different option flags:
  * 		
- * 		[1] "./run -settings"
+ * 		[1] 	"./run -settings"
  * 			set pid gains and computer vision parameters
  * 
  * 		[2]	"./run -auto"
