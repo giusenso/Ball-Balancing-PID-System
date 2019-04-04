@@ -140,32 +140,6 @@ void createTrackbars(){
     createTrackbar( "V_MAX", trackbarWindowName, &V_MAX, V_MAX, on_trackbar );
 }
 
-/**
- * @brief Create a Gain Trackbars object for PID gainss
- * 		!!!unused function!!!
- * @param XPID 
- * @param YPID 
- */
-void createGainTrackbars(PID_t* XPID, PID_t* YPID){
-
-    namedWindow(gainTrackbarWindowName, 0);
-
-	char TrackbarName[16];
-	sprintf( TrackbarName, "X_Kp");
-	sprintf( TrackbarName, "X_Ki");
-	sprintf( TrackbarName, "X_Kd");
-	sprintf( TrackbarName, "Y_Kp");
-	sprintf( TrackbarName, "Y_Ki");
-	sprintf( TrackbarName, "Y_Kd");
-
-	createTrackbar( "X_Kp", gainTrackbarWindowName, (int*)&(XPID->Kp), P_MAX, on_trackbar );
-    createTrackbar( "X_Ki", gainTrackbarWindowName, (int*)&(XPID->Ki), I_MAX, on_trackbar );
-    createTrackbar( "X_Kd", gainTrackbarWindowName, (int*)&(XPID->Kd), D_MAX, on_trackbar );
-	createTrackbar( "Y_Kp", gainTrackbarWindowName, (int*)&(YPID->Kp), P_MAX, on_trackbar );
-    createTrackbar( "Y_Ki", gainTrackbarWindowName, (int*)&(YPID->Ki), I_MAX, on_trackbar );
-    createTrackbar( "Y_Kd", gainTrackbarWindowName, (int*)&(YPID->Kd), D_MAX, on_trackbar );
-}
-
 
 /**
  * @brief DRAW VERSION V2

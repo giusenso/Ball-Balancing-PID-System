@@ -21,12 +21,6 @@
 #include "../utils.h"
 #include "../ball_tracker/ball_physic.h"
 
-#define   P_MIN   0
-#define   P_MAX   40
-#define   I_MIN   0
-#define   I_MAX   25
-#define   D_MIN   0
-#define   D_MAX   10
 //_ Data ____________________________
 
 typedef struct PID_t{
