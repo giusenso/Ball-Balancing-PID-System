@@ -4,27 +4,26 @@
  * 
  * @brief 		BALL BALANCING PID SYSTEM
  * @repository 	https://github.com/JiuSenso/Ball-Balancing-PID-System.git
- * 
- * 
- * 		after compiling it(see README.md for details)
- * 		can be launched with different option flags:
- * 		
- * 		[1] "./run -s"
- * 			start standard mode: better performance but minimal GUI
- * 			set pid gains and computer vision parameters
- * 
- * 		[2]	"./run -settings"
- * 			set pid gains and computer vision parameters
- * 
- * 		[3]	"./run -debug"
- * 			start debug mode: a better GUI and print utilities,
- * 			little bit slower	
- * 
- * 		[4]	"./run -manual"
- * 			platform can be controlled directly from terminal.
- * 
- * 		*note: one and only one flag can be used
- *			
+  
+  
+  		after compiling it(see README.md for details)
+  		can be launched with different option flags:
+  		
+		[1] "./run -s"
+ 			standard mode: better performance but minimal GUI
+
+		[2]	"./run -settings"
+			setting mode: set pid gains and computer vision parameters
+ 
+		[3]	"./run -debug"
+  			debug moded: start debug mode: a better GUI and print utilities,
+ 			little bit slower than standard mode
+  
+		[4]	"./run -manual"
+		  	manual mode: platform can be controlled directly from terminal.
+  
+  		*note: one and only one flag can be used
+ 			
  * @version 1.3
  * @date 2019-03-22
  * 
