@@ -43,7 +43,7 @@ PID_t createPID(float _Kp, float _Ki, float _Kd,
         .Kd         =   _Kd,
         .setpoint   =   setpoint,
         .error      =   { 0,0 },
-        .dt         =   0.018,
+        .dt         =   0.01,
         .output     =   { 0,0 }, 
         .integral   =   0,
         .min        =   min_angle,
@@ -81,8 +81,8 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball_t ball) {
     pidX->output[1] = pidX->output[0]; 
 
     //compute new error
-    if (!pidX->inverted_mode) pidX->error[0] = (pidX->setpoint - (ball.x[0]+ball.x[1]+ball.x[2])/3);
-    else pidX->error[0] = ((ball.x[0]+ball.x[1]+ball.x[2])/3 - pidX->setpoint);
+    if (!pidX->inverted_mode) pidX->error[0] = pidX->setpoint - ball.x[0];
+    else pidX->error[0] = ball.x[0] - pidX->setpoint;
 
     //Integral: update and filter
     pidX->integral += pidX->error[0] * pidX->dt;
@@ -99,8 +99,8 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball_t ball) {
             pidX->Ki * pidX->integral +
             pidX->Kd * (ball.smooth_dx/pidX->dt);
 
-    //filter    
-    pidX->output[0] = saturationFilter(pidX->output[0], pidX->output[1]-850, pidX->output[1]+850);
+     //output filter   
+    pidX->output[0] = saturationFilter(pidX->output[0], pidX->output[1]-1500, pidX->output[1]+1500);
     pidX->output[0] = saturationFilter(pidX->output[0], pidX->min, pidX->max);
 
 
@@ -112,8 +112,8 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball_t ball) {
     pidY->output[1] = pidY->output[0]; 
 
     //compute new error
-    if (!pidY->inverted_mode) pidY->error[0] = (pidY->setpoint - (ball.y[0]+ball.y[1]+ball.y[2])/3);
-    else pidY->error[0] = ((ball.y[0]+ball.y[1]+ball.y[2])/3 - pidY->setpoint);
+    if (!pidY->inverted_mode) pidY->error[0] = pidY->setpoint - ball.y[0];
+    else pidY->error[0] = ball.y[0] - pidY->setpoint;
 
     //Integral: update and filter
     pidY->integral += pidY->error[0] * pidY->dt;
@@ -130,8 +130,8 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball_t ball) {
             pidY->Ki * pidY->integral +
             pidY->Kd * (ball.smooth_dy/pidY->dt);
     
-    //filter 
-    pidY->output[0] = saturationFilter(pidY->output[0], pidY->output[1]-850, pidY->output[1]+850);
+    //output filter 
+    pidY->output[0] = saturationFilter(pidY->output[0], pidY->output[1]-1500, pidY->output[1]+1500);
     pidY->output[0] = saturationFilter(pidY->output[0], pidY->min, pidY->max);
 //===============================================================================
 }

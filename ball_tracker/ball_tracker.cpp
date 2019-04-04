@@ -268,25 +268,26 @@ inline void plotPos(Ball_t b, Mat &frame, uint16_t x, uint16_t y){
 
 
 /**
- * @brief create structuring element that will be used to "dilate" and "erode" image
+ * @brief create structuring element that will be used to "erode" and "dilate" image
  * 
  * @param thresh Threshold cv::Mat
  */
 void morphOps(Mat &thresh){
 
-	//the element chosen here is a 3px by 3px rectangle
-	Mat erodeElement = getStructuringElement( MORPH_RECT,Size(3,3));
+	//the kernel chosen here is a 5px by 5px square
+	cv::Mat erodeElement = getStructuringElement(cv::MORPH_RECT, Size(5,5));
 
     //dilate with larger element so make sure object is nicely visible
-	Mat dilateElement = getStructuringElement( MORPH_RECT,Size(5,5));
+	cv::Mat dilateElement = getStructuringElement(cv::MORPH_RECT, Size(5,5));
 
-	erode(thresh,thresh,erodeElement);
-	erode(thresh,thresh,erodeElement);
+	cv::erode(thresh,thresh,erodeElement);
+	cv::erode(thresh,thresh,erodeElement);
 
-	dilate(thresh,thresh,dilateElement);
-	dilate(thresh,thresh,dilateElement);
+	cv::dilate(thresh,thresh,dilateElement);
+	cv::dilate(thresh,thresh,dilateElement);
 
-	morphologyEx(thresh, thresh, MORPH_CLOSE, Mat::ones(5, 5, CV_8U));
+	//close = erode + dilate
+	//cv::morphologyEx(thresh, thresh, MORPH_CLOSE, Mat::ones(5, 5, CV_8U)); 
 
 	//release
 	erodeElement.release();
@@ -295,7 +296,7 @@ void morphOps(Mat &thresh){
 
 /**
  * @brief Track Filtered Object
- * detect the ball from the treshold Mat,
+ * detect the ball from the treshold Mat Moments Method,
  * and call updateBall()/createBall() function.
  * 
  * @param ball Ball_t object
@@ -308,26 +309,25 @@ void trackFilteredObject(Ball_t* ball, Mat threshold){
 	std::vector< std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;
 
-	//find contours of filtered image using openCV findContours function
-	findContours(threshold,contours,hierarchy,CV_RETR_CCOMP,CV_CHAIN_APPROX_SIMPLE );
-
 	//use moments method to find our filtered object
 	float refArea = 0;
 
+	//find contours of filtered image using openCV findContours function
+	cv::findContours(threshold,contours,hierarchy,CV_RETR_CCOMP,CV_CHAIN_APPROX_SIMPLE );
+
 	if (hierarchy.size() > 0) {
 		int numObjects = hierarchy.size();
-        //if number of objects greater than MAX_NUM_OBJECTS we have a noisy filter
+        //if number of objects greater than MAX_NUM_OBJECTS we have a noise error
         if(numObjects<MAX_NUM_OBJECTS){
 			for (int index = 0; index >= 0; index = hierarchy[index][0]) {
-
-				Moments moment = moments((cv::Mat)contours[index]);
+				cv::Moments moment = cv::moments((cv::Mat)contours[index]);
 				float area = moment.m00;
 
                 if(area>MIN_OBJECT_AREA && area<MAX_OBJECT_AREA && area>refArea){
 					if(ball->detected){
 						//circleDetector(cameraFeed, threshold);
 						updateBall(ball,(moment.m10/area)+(FRAME_WIDTH-CONTROL_AREA)/2, 
-											(moment.m01/area)+(FRAME_HEIGHT-CONTROL_AREA)/2);
+										(moment.m01/area)+(FRAME_HEIGHT-CONTROL_AREA)/2);
 						refArea = area;
 					}
 					else {
@@ -338,11 +338,11 @@ void trackFilteredObject(Ball_t* ball, Mat threshold){
 				}
 			}
 		}
-		/*
+		
 		else{
-			noise_error = true;
-			*ball = createBall(FRAME_WIDTH/2, FRAME_HEIGHT/2);
-		}*/
+			//noise_error = true;
+			ball->detected = false;
+		}
 	}
 	else{
 		ball->detected = false;

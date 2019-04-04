@@ -42,8 +42,8 @@ typedef struct ServoConfig {
 
 /*      servos                               */
 
-#define   X_HALF_ANGLE      23100
-#define   Y_HALF_ANGLE      24600
+#define   X_HALF_ANGLE      23850
+#define   Y_HALF_ANGLE      24850
 #define   ANGLE_OFFSET      5800
 #define	  X_MAX_ANGLE       X_HALF_ANGLE+ANGLE_OFFSET
 #define   X_MIN_ANGLE       X_HALF_ANGLE-ANGLE_OFFSET

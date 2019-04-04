@@ -111,10 +111,12 @@ int main(int argc, char* argv[]){
 		float x_gains[3], y_gains[3];
 		arrayFromTextFile(pid_data_file_name, x_gains, 1);
 		arrayFromTextFile(pid_data_file_name, y_gains, 2);
+
 		PID_t XPID = createPID(	x_gains[0], x_gains[1], x_gains[2], 
 								FRAME_WIDTH/2, true, X_MIN_ANGLE, X_MAX_ANGLE);
 		PID_t YPID = createPID(	y_gains[0], y_gains[1], y_gains[2], 
 								FRAME_HEIGHT/2, false, Y_MIN_ANGLE, Y_MAX_ANGLE);
+								
 		printf("Done. \n");
 		printPID(XPID);
 		printPID(YPID);
@@ -177,7 +179,7 @@ int main(int argc, char* argv[]){
 			exit(EXIT_FAILURE);
 		}
 		cv::imshow(windowName, GUI);
-		moveWindow(windowName, gui_pos.x, gui_pos.y-100);
+		cv::moveWindow(windowName, gui_pos.x, gui_pos.y-100);
 		total_start = clock();
 
 //=============================================================================
@@ -217,10 +219,11 @@ int main(int argc, char* argv[]){
 					exit(EXIT_FAILURE);
 				}
 			}
-			//printf("output:  X = %d , Y = %d , dt = %.4lf\n",XPID.output[0], YPID.output[0], YPID.dt*9.1);
+			printf("output:  X = %d , Y = %d , dt = %.4lf\n",XPID.output[0], YPID.output[0], YPID.dt*9.1);
 			end = clock();
+			
 			//update dt based on frame rate
-			XPID.dt = YPID.dt = (float)(end - start)/CLOCKS_PER_SEC;
+			//XPID.dt = YPID.dt = (float)(end - start)/CLOCKS_PER_SEC;
 
 			frame_counter++;
 			if(waitKey(1) >= 0) break;
@@ -298,7 +301,7 @@ int main(int argc, char* argv[]){
 					cv::vconcat(MATS[1], TOOL, MATS[1]);
 					cv::hconcat(MATS[1], MATS[0], GUI);
 					cv::imshow(windowName, GUI);
-					moveWindow(windowName, gui_pos.x, gui_pos.y-100);
+					cv::moveWindow(windowName, gui_pos.x, gui_pos.y-100);
 					if(waitKey(30) >= 0) break;
 				}
 				printf("Save data... ");

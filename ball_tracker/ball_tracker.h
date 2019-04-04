@@ -32,7 +32,7 @@ using namespace cv;
 #define 	BOX_SIZE			200
 
 //max number of objects to be detected in frame
-#define     MAX_NUM_OBJECTS     10
+#define     MAX_NUM_OBJECTS     3
 
 //minimum and maximum object area
 #define     MIN_OBJECT_AREA     14*14
