@@ -25,40 +25,36 @@
 
 //_ Data Structure _______________________
 
-
-typedef struct Point_t{
-    uint16_t    x;
-    uint16_t    y;
-} Point_t;
-
 typedef struct ServoConfig {
-    uint16_t     servoX;
-    uint16_t     servoY;
+    uint16_t     xPulse;
+    uint16_t     yPulse;
 } ServoConfig_t;
 
 
 //_ Global Variables _______________________
 
+/*========== about servos =======================*/
+#define   ANGLE_OFFSET      5900
 
-/*      servos                               */
-
-#define   X_HALF_ANGLE      23850
-#define   Y_HALF_ANGLE      24850
-#define   ANGLE_OFFSET      5800
+#define   X_HALF_ANGLE      23650
 #define	  X_MAX_ANGLE       X_HALF_ANGLE+ANGLE_OFFSET
 #define   X_MIN_ANGLE       X_HALF_ANGLE-ANGLE_OFFSET
+
+#define   Y_HALF_ANGLE      24850
 #define	  Y_MAX_ANGLE       Y_HALF_ANGLE+ANGLE_OFFSET
 #define   Y_MIN_ANGLE       Y_HALF_ANGLE-ANGLE_OFFSET
 
-
-/*      other                                */
-
+/*===============================================*/
 #define     PI                  3.1415
-#define     CONTROL_AREA        348
+
+#define     CONTROL_AREA        350
+
 #define     FRAME_WIDTH         640
 #define     FRAME_HEIGHT        480
+
 #define     SETPOINT_X          FRAME_WIDTH/2
 #define     SETPOINT_Y          FRAME_HEIGHT/2
+/*===============================================*/
 
 
 #endif

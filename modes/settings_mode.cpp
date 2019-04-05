@@ -1,19 +1,26 @@
-
+/**
+ * @file settings_mode.cpp
+ * @author Giuseppe Sensolini
+ * @brief SETTINGS MODE
+ * @version 0.1
+ * @date 2019-03-05
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 
 #include "modes.h"
 #include "../utils.h"
-
-
 
 //=============================================================================
 //:::::::::::::: SETTINGS :::::::::::::::::::::::::::::::::::::::::::::::::::::
 //=============================================================================
 int settings_mode(){
     
-const char* pid_data_file_name = "../settings/pid_data.txt";
-const char* hsv_data_file_name = "../settings/hsv_data.txt";
+const char* pid_data_file_name = "settings/pid_data.txt";
+const char* hsv_data_file_name = "settings/hsv_data.txt";
+
 int ret __attribute__((unused)); /*for unused variables suppression*/
-Ball_t ball = createBall(FRAME_WIDTH/2, FRAME_HEIGHT/2);
 	
 	/*	PID SETTINGS	*/
 	char answ = 0;
@@ -58,7 +65,8 @@ Ball_t ball = createBall(FRAME_WIDTH/2, FRAME_HEIGHT/2);
 					cv::Mat(CONTROL_AREA, CONTROL_AREA, CV_8UC3),
 					cv::Mat(CONTROL_AREA, CONTROL_AREA, CV_8UC3),
 				  };	// Mat Array = [ webcam | masked | HSV ]
-	
+
+					Ball_t ball = createBall(FRAME_WIDTH/2, FRAME_HEIGHT/2);
 	        cv::Mat GUI(FRAME_HEIGHT, FRAME_WIDTH+CONTROL_AREA, CV_8UC3, cv::Scalar(80,70,50));
 	        cv::Mat TOOL(FRAME_HEIGHT-CONTROL_AREA, CONTROL_AREA, CV_8UC3, cv::Scalar(80,70,50));
 	        cv::Rect controlROI(SETPOINT_X-CONTROL_AREA/2,SETPOINT_Y-CONTROL_AREA/2, 
@@ -94,6 +102,8 @@ Ball_t ball = createBall(FRAME_WIDTH/2, FRAME_HEIGHT/2);
 							MATS[1]);
 				morphOps(MATS[1]);
 				trackFilteredObject(&ball, MATS[1]);
+				drawObjectV2(ball, MATS[0], false);
+
 				cvtColor(MATS[1], MATS[1], COLOR_GRAY2BGR);
 				cv::vconcat(MATS[1], TOOL, MATS[1]);
 				cv::hconcat(MATS[1], MATS[0], GUI);

@@ -33,7 +33,7 @@ void UART_init(void){
   UBRR0H = (uint8_t)(MYUBRR>>8);
   UBRR0L = (uint8_t)MYUBRR;
 
-  UCSR0C = (1<<UCSZ01) | (1<<UCSZ00); /* 8-bit data */
+  UCSR0C = (1<<UCSZ01) | (1<<UCSZ00);               /* 8-bit data */
   UCSR0B = (1<<RXEN0) | (1<<TXEN0) | (1<<RXCIE0);   /* Enable RX and TX */
 
 }
@@ -160,15 +160,6 @@ void PWM_init(void){
 }
 //---------------------------------------------------------
 
-/*
- * INTERRUPT SERVICE ROUTINE
- */
-ISR(USART0_RX_vect){
-	UART_getString(buf);
-  OCR3A = (buf[1]<<8) | buf[0]; //decode X
-  OCR4A = (buf[3]<<8) | buf[2]; //decode Y
-	msg_rcv = 1;
-}
 
 //========================================================/
 //::::: M A I N ::::::::::::::::::::::::::::::::::::::::::/
@@ -178,21 +169,20 @@ uint8_t buf[5];
 volatile uint8_t running, msg_rcv;
 	  	
 int main(void){
-	cli();  //interrupts disabled
+	
+  cli();  //interrupts disabled
+  UART_init();
 
 	//set flags
 	running = msg_rcv = 0;
-	_delay_ms(100);
-
 	buf[0]=buf[1]=buf[2]=buf[3]=buf[4] = 0x5D;
 
-  //led light up
+  //led on
   const uint8_t mask = (1<<7);
   DDRB |= mask;
 	PORTB = mask;
-	
-	UART_init();
-	UART_getManyString(buf, 3); //burn the first packet
+
+	UART_getManyString(buf, 3); //burn some packets 
 	_delay_ms(100);
 	
 	PWM_init();
@@ -200,7 +190,7 @@ int main(void){
   OCR4A = 24000;  // Y servo
 	
 	PORTB = 0;
-	sei();  //interrupts enabled
+	sei();    //interrupts enabled
 	running = 1;
 
   /////////////////////////////////////
@@ -216,6 +206,16 @@ int main(void){
 		continue;
 	} ///////////////////////////////////
 
+}
+
+/*
+ * INTERRUPT SERVICE ROUTINE
+ */
+ISR(USART0_RX_vect){
+	UART_getString(buf);
+  OCR3A = (buf[1]<<8) | buf[0]; //decode X
+  OCR4A = (buf[3]<<8) | buf[2]; //decode Y
+	msg_rcv = 1;
 }
 
 

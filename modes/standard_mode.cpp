@@ -1,8 +1,22 @@
+/**
+ * @file standard_mode.cpp
+ * @author Giuseppe Sensolini
+ * @brief STANDARD MODE
+ * @version 2.1
+ * @date 2019-03-20
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
+
 
 #include "modes.h"
 #include "../utils.h"
 
 
+//=============================================================================
+//:::::::::::::: STANDARD :::::::::::::::::::::::::::::::::::::::::::::::::::::
+//=============================================================================
 int standard_mode(){
 
 const char* pid_data_file_name = "settings/pid_data.txt";
@@ -80,8 +94,8 @@ int ret __attribute__((unused)); /*for unused variables suppression*/
 
 	//_ Initialize servo config___________________________
 		ServoConfig_t config = { 
-			.servoX = X_HALF_ANGLE,
-			.servoY = Y_HALF_ANGLE
+			.xPulse = X_HALF_ANGLE,
+			.yPulse = Y_HALF_ANGLE
 		};
 		printServoConfig(config);
 	
@@ -165,8 +179,8 @@ int ret __attribute__((unused)); /*for unused variables suppression*/
 			if(ball.detected){
 				//compute new servo pulses
 				PIDCompute(&XPID, &YPID, ball);
-				config.servoX = XPID.output[0];
-				config.servoY = YPID.output[0];
+				config.xPulse = XPID.output[0];
+				config.yPulse = YPID.output[0];
 
 				//encode and send to avr
 				encodeConfig(&config, buf);	//Create Packet
@@ -176,11 +190,11 @@ int ret __attribute__((unused)); /*for unused variables suppression*/
 					exit(EXIT_FAILURE);
 				}
 			}
-			printf("output:  X = %d , Y = %d , dt = %.4lf\n",XPID.output[0], YPID.output[0], YPID.dt*9.1);
-			end = clock();
 			
-			//update dt based on frame rate
-			//XPID.dt = YPID.dt = (float)(end - start)/CLOCKS_PER_SEC;
+			printf("%d\n", ball.y[0]);
+
+			//printf("output:  X = %d , Y = %d , dt = %.4lf\n",XPID.output[0], YPID.output[0], YPID.dt*9.1);
+			//end = clock();
 
 			frame_counter++;
 			if(waitKey(1) >= 0) break;

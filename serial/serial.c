@@ -42,9 +42,14 @@ const char* serialPorts[5]= {	ttyACM0,
 								ttyACM3,
 								ttyACM4
 							};
+/*=============================================================*/
 
-//--------------------------------------------------------
-//initialize serial communication______________
+/**
+ * @brief find serial device and open
+ * 
+ * @param fd file descriptor pointer
+ * @return ttyACM* device number, -1 if no device found
+ */
 int openSerialCommunication(int* fd){
 	printf("\nSearch for AVR device on serial ports...\n");
 	int k = 0;
@@ -75,8 +80,8 @@ void setSerialAttributes(int fd){
 	cfsetispeed(&SerialPortSettings,B9600); /* Set Read  Speed as 9600                       */
 	cfsetospeed(&SerialPortSettings,B9600); /* Set Write Speed as 9600                       */
 
-	SerialPortSettings.c_cflag &= ~PARENB;   /* Disables the Parity Enable bit(PARENB),So No Parity   */
-	SerialPortSettings.c_cflag &= ~CSTOPB;   /* CSTOPB = 2 Stop bits,here it is cleared so 1 Stop bit */
+	SerialPortSettings.c_cflag &= ~PARENB;   /* Disables the Parity*/
+	SerialPortSettings.c_cflag &= ~CSTOPB;   /* CSTOPB = 2 Stop bits, here it is cleared so 1 Stop bit*/
 	SerialPortSettings.c_cflag &= ~CSIZE;	 /* Clears the mask for setting the data size             */
 	SerialPortSettings.c_cflag |=  CS8;      /* Set the data bits = 8                                 */
 
@@ -86,7 +91,7 @@ void setSerialAttributes(int fd){
 	SerialPortSettings.c_iflag &= ~(IXON | IXOFF | IXANY);          /* Disable XON/XOFF flow control both i/p and o/p */
 	SerialPortSettings.c_iflag &= ~(ICANON | ECHO | ECHOE | ISIG);  /* Non Cannonical mode                            */
 
-	SerialPortSettings.c_oflag &= ~OPOST;/*No Output Processing*/
+	SerialPortSettings.c_oflag &= ~OPOST;		/*No Output Processing*/
 
 	if((tcsetattr(fd,TCSANOW,&SerialPortSettings)) != 0){
 		printf("\n ERROR! cannot set serial attributes\n\n");
@@ -106,8 +111,8 @@ void setSerialAttributes(int fd){
 void closeSerialCommunication(int* fd, ServoConfig_t* config){
 
 	uint8_t buf[5];
-	config->servoX = X_HALF_ANGLE;
-	config->servoY = Y_HALF_ANGLE;
+	config->xPulse = X_HALF_ANGLE;
+	config->yPulse = Y_HALF_ANGLE;
 	encodeConfig(config, buf);
 
 	int ret = write(*fd, (void*)buf, sizeof(buf));
@@ -116,9 +121,8 @@ void closeSerialCommunication(int* fd, ServoConfig_t* config){
 		(int)(sizeof(buf)/sizeof(uint8_t)), ret);
 	}
 
-	sleep(2); //required to make flush work, for some reason
+	sleep(2); //required to make flush work
 	tcflush(*fd, TCIOFLUSH);
-
 	ret = close(*fd);
 	if(ret != 0) {
 		printf("\n  -- close(fd) syscall failed [%d]\n", ret);
@@ -134,16 +138,16 @@ void closeSerialCommunication(int* fd, ServoConfig_t* config){
  */
 // SERVOCONFIG_T* ===> UINT8_T*
 void encodeConfig(ServoConfig_t* config, uint8_t* buf){
-	buf[0] = (config->servoX) & 0xFF;	//low bits
-	buf[1] = (config->servoX) >> 8;		//high bits
-	buf[2] = (config->servoY) & 0xFF;	//low bits
-	buf[3] = (config->servoY) >> 8;		//high bits
+	buf[0] = (config->xPulse) & 0xFF;	//low bits
+	buf[1] = (config->xPulse) >> 8;		//high bits
+	buf[2] = (config->yPulse) & 0xFF;	//low bits
+	buf[3] = (config->yPulse) >> 8;		//high bits
 	buf[4] = '\n';
 }
 
 
 /**
- * @brief handshake Routine
+ * @brief Handshake Routine: actually not used [to be fixed]
  * 
  */
 /*
@@ -180,7 +184,7 @@ bool handShake(int* fd){	//to be tested
  */
 void printServoConfig(ServoConfig_t config){
 	printf("\n   ======================================\n");
-	printf("  |  servoX: %d   ||   servoY: %d  |\n", config.servoX, config.servoY);
+	printf("  |  xPulse: %d   ||   yPulse: %d  |\n", config.xPulse, config.yPulse);
 	printf("   ======================================\n");
 }
 

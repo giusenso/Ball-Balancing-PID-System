@@ -13,7 +13,7 @@
 #include "ball_physic.h"
 
 //size of the moving average
-#define 	N	5
+#define 	N	3
 
 
 /**
@@ -67,7 +67,7 @@ void updateBall(Ball_t* b, uint16_t _x, uint16_t _y){
 
 	//recursively update moving average for X
 	b->smooth_dx =
-		(N * (b->smooth_dx) - b->dx[N] + b->dx[0]) / N;
+		(N * b->smooth_dx - b->dx[N] + b->dx[0]) / N;
 
 	
 	//update Y position

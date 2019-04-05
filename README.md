@@ -25,8 +25,8 @@ Additional libs: OpenCV 3.4.1
 
 Hardware:
 - microcontroller: Atmega2560
-- Laptop
 - Servos: DS3218MG 5V-6.8V
+- USB camera: 640x480
 - Battery pack: 6V, 2850maAh
 
 *** This project is designed to be modular. Every module can work stand-alone with it's own testing unit. ***

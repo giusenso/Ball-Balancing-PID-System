@@ -1,7 +1,21 @@
+/**
+ * @file debug_mode.cpp
+ * @author Giuseppe Sensolini
+ * @brief DEDBUF MODE
+ * @version 0.1
+ * @date 2019-03-02
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
+
 #include "modes.h"
 #include "../utils.h"
 
 
+//=============================================================================
+//:::::::::::::: DEBUG :::::::::::::::::::::::::::::::::::::::::::::::::::::
+//=============================================================================
 int debug_mode(){
 	
 const char* pid_data_file_name = "settings/pid_data.txt";
@@ -79,8 +93,8 @@ int ret __attribute__((unused)); /*for unused variables suppression*/
 
 	//_ Initialize servo config___________________________
 		ServoConfig_t config = { 
-			.servoX = X_HALF_ANGLE,
-			.servoY = Y_HALF_ANGLE
+			.xPulse = X_HALF_ANGLE,
+			.yPulse = Y_HALF_ANGLE
 		};
 		printServoConfig(config);
 	
@@ -164,8 +178,8 @@ int ret __attribute__((unused)); /*for unused variables suppression*/
 			if(ball.detected){
 				//compute new servo pulses
 				PIDCompute(&XPID, &YPID, ball);
-				config.servoX = XPID.output[0];
-				config.servoY = YPID.output[0];
+				config.xPulse = XPID.output[0];
+				config.yPulse = YPID.output[0];
 
 				//encode and send to avr
 				encodeConfig(&config, buf);	//Create Packet
