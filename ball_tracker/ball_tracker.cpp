@@ -27,9 +27,9 @@ int S_MAX = 256;
 int V_MIN = 0;
 int V_MAX = 256;
 
-const String windowName = "Camera Feed";
+const String windowName = "Ball Balancing PID System";
+const String windowName2 = "HSV view";
 const String trackbarWindowName = "HSV Trackbars";
-const String gainTrackbarWindowName = "PID GAINS";
 
 /**
  * @brief Get the window position based on screen size
@@ -127,11 +127,6 @@ void createTrackbars(){
 	sprintf( TrackbarName, "V_MIN");
 	sprintf( TrackbarName, "V_MAX");
 
-	//create trackbars and insert them into window
-	//3 parameters are: the address of the variable that is changing when the trackbar is moved(eg.H_LOW),
-	//the max value the trackbar can move (eg. H_HIGH),
-	//and the function that is called whenever the trackbar is moved(eg. on_trackbar)
-	//                                  ---->    ---->     ---->
     createTrackbar( "H_MIN", trackbarWindowName, &H_MIN, H_MAX, on_trackbar );
     createTrackbar( "H_MAX", trackbarWindowName, &H_MAX, H_MAX, on_trackbar );
     createTrackbar( "S_MIN", trackbarWindowName, &S_MIN, S_MAX, on_trackbar );

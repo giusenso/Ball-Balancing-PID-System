@@ -136,8 +136,6 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball_t ball) {
 //===============================================================================
 }
 
-
-
 /**
  * @brief correct saturated values
  * 
