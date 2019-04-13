@@ -148,54 +148,54 @@ void drawObjectV2(Ball_t ball, Mat &frame, bool noise_error){
 
 	if(noise_error){	//////////////////////////////////////
 		rectangle(	frame,
-					Point(SETPOINT_X-202, SETPOINT_Y-202),
-					Point(SETPOINT_X+202, SETPOINT_Y+202),
+					cv::Point(SETPOINT_X-202, SETPOINT_Y-202),
+					cv::Point(SETPOINT_X+202, SETPOINT_Y+202),
 					RED, 3, LINE_8, 0);
-		putText(frame, "TOO MUCH NOISE! ADJUST FILTERS", Point(180,220), 1, 1, RED , 2);
+		putText(frame, "TOO MUCH NOISE! ADJUST FILTERS", cv::Point(180,220), 1, 1, RED , 2);
 		return;
 	}
 
 	if (ball.detected){	//////////////////////////////////////
 		//draw square area
 		rectangle(	frame,
-					Point(SETPOINT_X-CONTROL_AREA/2-1, SETPOINT_Y-CONTROL_AREA/2-1),
-					Point(SETPOINT_X+CONTROL_AREA/2+1, SETPOINT_Y+CONTROL_AREA/2+1),
+					cv::Point(SETPOINT_X-CONTROL_AREA/2-1, SETPOINT_Y-CONTROL_AREA/2-1),
+					cv::Point(SETPOINT_X+CONTROL_AREA/2+1, SETPOINT_Y+CONTROL_AREA/2+1),
 					CYAN, 3, LINE_8, 0);
-		putText(frame, "BALL FOUND", Point(123,32), 1, 1, GREEN, 2);
+		putText(frame, "BALL FOUND", cv::Point(123,32), 1, 1, GREEN, 2);
 
 		//draw setpoint area
-		circle(frame, Point(SETPOINT_X,SETPOINT_Y), 2, CYAN, 3);
+		circle(frame, cv::Point(SETPOINT_X,SETPOINT_Y), 2, CYAN, 3);
 		rectangle(	frame,
-					Point(SETPOINT_X-30, SETPOINT_Y-30),
-					Point(SETPOINT_X+30, SETPOINT_Y+30),
+					cv::Point(SETPOINT_X-30, SETPOINT_Y-30),
+					cv::Point(SETPOINT_X+30, SETPOINT_Y+30),
 					ORANGE, 1, LINE_4, 0);
 
 
 		//draw ball lines for position spot
 		rectangle(	frame,
-					Point(ball.x[0]-28, ball.y[0]-28),
-					Point(ball.x[0]+28, ball.y[0]+28),
+					cv::Point(ball.x[0]-28, ball.y[0]-28),
+					cv::Point(ball.x[0]+28, ball.y[0]+28),
 					GREEN, 1, LINE_8, 0);
 
 		//draw velocity arrow
-		arrowedLine(frame, 	Point(ball.x[0] , ball.y[0]),
-							Point(ball.x[0]+ball.smooth_dx, ball.y[0]+ball.smooth_dy),
+		arrowedLine(frame, 	cv::Point(ball.x[0] , ball.y[0]),
+							cv::Point(ball.x[0]+ball.smooth_dx, ball.y[0]+ball.smooth_dy),
 							RED, 2, 8, 0 , 0.4);
 
 		//draw previous positions
 		for (int i=1 ; i<8 ; i++){
-			circle( frame, Point(ball.x[i], ball.y[i]), 2, ORANGE, -1, 8, 0 );
+			circle( frame, cv::Point(ball.x[i], ball.y[i]), 2, ORANGE, -1, 8, 0 );
 
 		
 		plotPos(ball, frame, 522, FRAME_HEIGHT/2);
 
 		}
 		//display ball info
-		putText(frame,intToString(ball.y[0]),Point(ball.x[0]+2,ball.y[0]-42),1,1,BLUE,2);
-		line(frame, Point(ball.x[0], 0), Point(ball.x[0], FRAME_HEIGHT), BLUE, 1);
-		line(frame, Point(0, ball.y[0]), Point(FRAME_WIDTH, ball.y[0]), BLUE, 1);
-		putText(frame,intToString(ball.y[0]),Point(ball.x[0]+2,ball.y[0]-42),1,1,BLUE,2);
-		putText(frame,intToString(ball.x[0]),Point(ball.x[0]+40,ball.y[0]+14),1,1,BLUE,2);
+		putText(frame,intToString(ball.y[0]),cv::Point(ball.x[0]+2,ball.y[0]-42),1,1,BLUE,2);
+		line(frame, cv::Point(ball.x[0], 0), cv::Point(ball.x[0], FRAME_HEIGHT), BLUE, 1);
+		line(frame, cv::Point(0, ball.y[0]), cv::Point(FRAME_WIDTH, ball.y[0]), BLUE, 1);
+		putText(frame,intToString(ball.y[0]),cv::Point(ball.x[0]+2,ball.y[0]-42),1,1,BLUE,2);
+		putText(frame,intToString(ball.x[0]),cv::Point(ball.x[0]+40,ball.y[0]+14),1,1,BLUE,2);
 
 		return;
 	}
@@ -203,11 +203,11 @@ void drawObjectV2(Ball_t ball, Mat &frame, bool noise_error){
 	//////////////////////////////////////
 	//draw square area
 	rectangle(	frame,
-		Point(SETPOINT_X-202, SETPOINT_Y-202),
-		Point(SETPOINT_X+202, SETPOINT_Y+202),
+		cv::Point(SETPOINT_X-202, SETPOINT_Y-202),
+		cv::Point(SETPOINT_X+202, SETPOINT_Y+202),
 		ORANGE, 3, LINE_8, 0);
 
-	putText(frame, "BALL NOT FOUND", Point(123,32), 1, 1, RED , 2);
+	putText(frame, "BALL NOT FOUND", cv::Point(123,32), 1, 1, RED , 2);
 	return;
 
 }
@@ -222,16 +222,16 @@ void drawObjectV2(Ball_t ball, Mat &frame, bool noise_error){
  * @param y 
  */
 inline void plotPos(Ball_t b, Mat &frame, uint16_t x, uint16_t y){
-	putText(frame, "X", Point(x+5, y-120), 1, 1, DARK_GREEN , 2);
-	putText(frame, "Y", Point(x+5, y+80), 1, 1, DARK_GREEN , 2);
-	line(frame, Point(x, y-100), Point(x+200, y-100), CYAN, 2);
-	line(frame, Point(x, y+100), Point(x+200, y+100), CYAN, 2);
+	putText(frame, "X", cv::Point(x+5, y-120), 1, 1, DARK_GREEN , 2);
+	putText(frame, "Y", cv::Point(x+5, y+80), 1, 1, DARK_GREEN , 2);
+	line(frame, cv::Point(x, y-100), cv::Point(x+200, y-100), CYAN, 2);
+	line(frame, cv::Point(x, y+100), cv::Point(x+200, y+100), CYAN, 2);
 
 	for(int i=1 ; i<8 ; i++){
-		line(frame, Point(x+i*10, (y-100+(b.x[i-1]-SETPOINT_X)/3)),
-			Point(x+i*20, (y-100+(b.x[i]-SETPOINT_X)/3)), DARK_GREEN, 2);
-		line(frame, Point(x+i*10, (y+100+(b.y[i-1]-SETPOINT_Y)/3)),
-			Point(x+i*20, (y+100+(b.y[i]-SETPOINT_Y)/3)), DARK_GREEN, 2);
+		line(frame, cv::Point(x+i*10, (y-100+(b.x[i-1]-SETPOINT_X)/3)),
+			cv::Point(x+i*20, (y-100+(b.x[i]-SETPOINT_X)/3)), DARK_GREEN, 2);
+		line(frame, cv::Point(x+i*10, (y+100+(b.y[i-1]-SETPOINT_Y)/3)),
+			cv::Point(x+i*20, (y+100+(b.y[i]-SETPOINT_Y)/3)), DARK_GREEN, 2);
 	}
 }
 
@@ -338,7 +338,7 @@ void circleDetector(Mat cameraFeed, Mat threshold){
 	for(size_t i = 0 ; i < circles.size() ; i++){
 		printf("%d    radius: %.1f \n", (int)i+1, circles[i][2]);
 
-		Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+		cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
 		short radius = cvRound(circles[i][2]);
 
 		circle( cameraFeed, center, 3, ORANGE, -1, 8, 0 );     // circle center
@@ -357,7 +357,7 @@ void circleDetector(Mat cameraFeed, Mat threshold){
  * @param YPID 
  */
 void drawLiveData(Mat &DATA, PID_t XPID, PID_t YPID){
-	putText(DATA, intToString(XPID.output[0]), Point(5,25), 1, 2, BLUE, 2);
-	putText(DATA, intToString(YPID.output[0]), Point(205,25), 1, 2, BLUE, 2);
+	putText(DATA, intToString(XPID.output[0]), cv::Point(5,25), 1, 2, BLUE, 2);
+	putText(DATA, intToString(YPID.output[0]), cv::Point(205,25), 1, 2, BLUE, 2);
 	//...
 }

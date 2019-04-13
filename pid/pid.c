@@ -150,6 +150,31 @@ inline short saturationFilter(short value , short T_MIN, short T_MAX){
     else return value;
 }
 
+/**
+ * @brief dynamically change setpoint:
+ *      this cant be done with a PI-D controller, 
+ *      because we need a error derivative instead of position derivative.
+ *      To fix this we need to fake a derivative errore here,
+ * @param XPID pointer to pid struct
+ * @param YPID pointer to pid struct
+ * @param sp new setpoint
+ * @return true if setpoint is allowed
+ * @return false if setpoint is not allowed
+ */
+bool changeSetpoint(PID_t* XPID, PID_t* YPID, Ball_t* ball, Point_t sp){
+    if( ((sp.x > SETPOINT_X+CONTROL_AREA/2) || (sp.x < SETPOINT_X-CONTROL_AREA/2)) &&
+        ((sp.x > SETPOINT_X+CONTROL_AREA/2) || (sp.x < SETPOINT_X-CONTROL_AREA/2)) ){
+        
+        ball->smooth_dx = sp.x - XPID->setpoint;
+        XPID->setpoint = sp.x;
+
+        ball->smooth_dy = sp.y - YPID->setpoint;
+        YPID->setpoint = sp.y;
+
+        return true;
+    }
+    else return false;
+}
 
 /**
  * @brief debug print

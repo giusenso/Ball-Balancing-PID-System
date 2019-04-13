@@ -30,6 +30,11 @@ typedef struct ServoConfig {
     uint16_t     yPulse;
 } ServoConfig_t;
 
+typedef struct Point{
+    uint16_t x;
+    uint16_t y;
+} Point_t;
+
 
 //_ Global Variables _______________________
 
@@ -47,7 +52,7 @@ typedef struct ServoConfig {
 /*===============================================*/
 #define     PI                  3.1415
 
-#define     CONTROL_AREA        350
+#define     CONTROL_AREA        360
 
 #define     FRAME_WIDTH         640
 #define     FRAME_HEIGHT        480
