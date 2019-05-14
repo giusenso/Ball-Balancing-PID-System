@@ -1,12 +1,12 @@
 # Ball Balancing PID Systems
 
 ## table of contents
-[Project description](#project-description)
-[Hardware](#hardware)
-[Technologies](#technologies)
-[How to use it](#how-to-use-it)
-[Performance](#performance)
-[Development](#development)
+*[Project description](#project-description)
+*[Hardware](#hardware)
+*[Technologies](#technologies)
+*[How to use it](#how-to-use-it)
+*[Performance](#performance)
+*[Development](#development)
 
 ## Project description
 This project is designed to be modular. Every module can work stand-alone with it's own testing unit.
