@@ -1,4 +1,6 @@
 # Ball Balancing PID Systems
+![alt text](https://github.com/JiuSenso/Ball-Balancing-PID-System/tree/master/pics/platform.jpg)
+![alt text](https://github.com/JiuSenso/Ball-Balancing-PID-System/tree/master/pics/computer_vision_algorithm.png)
 
 ## table of contents
 * [Project description](#project-description)
