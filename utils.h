@@ -23,6 +23,12 @@
 #define     false       0
 #define     true        1
 
+enum mcu{
+    ATMEGA2560,
+    ESP32,
+    ATMEGA328
+};
+
 //_ Data Structure _______________________
 
 typedef struct Point_t{

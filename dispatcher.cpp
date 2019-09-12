@@ -9,20 +9,20 @@
   		after compiling it(see README.md for details)
   		can be launched with different option flags:
   		
-		[1] "./run -s"
- 			standard mode: better performance but minimal GUI
+		[1] "./run"
+ 			standard mode: better performance, minimal GUI.
 
-		[2]	"./run -settings"
-			setting mode: set pid gains and computer vision parameters
+		[2]	"./run -s"
+			setting mode: set pid gains and computer vision parameters.
  
-		[3]	"./run -debug"
+		[3]	"./run -d"
   			debug moded: start debug mode: a better GUI and print utilities,
- 			little bit slower than standard mode
+ 			little bit slower than standard mode.
   
-		[4]	"./run -manual"
-		  	manual mode: platform can be controlled directly from terminal.
+		[4]	"./run -m"
+		  	manual mode: platform can be controlled directly from with joypad.
   
-  		*note: one and only one flag can be used
+  		*note: one and only one flag can be used.
  			
  * @version 1.3
  * @date 2019-03-22
@@ -34,44 +34,45 @@
 #include <getopt.h>
 #include "modes/modes.h"
 
-void printFlagOptions();
-
+/**
+ * @brief MAIN works like a dispatcher
+ */
 int main(int argc, char* argv[]){
+	int opt, ret;
+	bool flags_enabled = false;
 
-	if (strcmp(argv[1],"-s") == 0){
-		standard_mode();
-		exit(EXIT_SUCCESS);
+  	while((opt = getopt (argc, argv, "fsdm")) != -1){
+		flags_enabled = true;
+
+    	switch (opt){
+			case 'f':
+				printf("# Forcing AVR reboot... \n\n");
+				ret = system("cd avr && bash upload.sh");
+				break;
+	
+			case 's':
+				settings_mode();
+				break;
+				
+			case 'd':
+				//debug_mode();
+				break;
+
+			case 'm':
+				//manual_mode();
+				break; 		
+			
+			case '?':
+				printf("# Avaible flags:\
+				\n    -f : force avr reboot\
+				\n    -s : open setting window\
+				\n    -d : enable debug mode\
+				\n    -m : enable manual mode\n");
+				exit(EXIT_FAILURE);		
+		}
 	}
-	/*
-	if (strcmp(argv[1],"-settings") == 0){
-		settings_mode();
-		exit(EXIT_SUCCESS);
-	}
-	if (strcmp(argv[1],"-debug") == 0){
-		debug_mode();
-		exit(EXIT_SUCCESS);
-	}
-	if (strcmp(argv[1],"-manual") == 0){
-		manual_mode();
-		exit(EXIT_SUCCESS);
-	}	
-	*/
-	else{
-		printf("error: INVALID FLAG!\n");
-		printFlagOptions();
-	}
+
+	if (!flags_enabled) standard_mode();
 	
 	return 0;
-}
-
-
-
-/**
- * @brief 
- * 
- */
-void printFlagOptions(){
-    printf("Use one and only one flag to enable one of this modes:\n\n");
-    printf(" [1] STANDARD MODE: -s\n [2] SETTINGS MODE: -settings\n\
- [3] DEBUG MODE:    -debug\n [4] MANUAL MODE:   -manual\n\n");
 }

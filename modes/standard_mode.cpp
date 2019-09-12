@@ -12,6 +12,8 @@
 #include "modes.h"
 #include "../utils.h"
 
+#define		MCU		ATMEGA2560
+
 //=============================================================================
 //:::::::::::::: STANDARD :::::::::::::::::::::::::::::::::::::::::::::::::::::
 //=============================================================================
@@ -26,39 +28,42 @@ int standard_mode(){
 //===== SETUP OPENCV DATA STRUCTURES ==========================================
 
 	// MATS = [ cameraFeed | threshold | HSV ]
-	Mat MATS[3] = {	cv::Mat(FRAME_HEIGHT,FRAME_WIDTH, CV_8UC3) ,
-					cv::Mat(CONTROL_AREA, CONTROL_AREA, CV_8UC3),
-					cv::Mat(CONTROL_AREA, CONTROL_AREA, CV_8UC3),
-				  };
+	cv::Mat MATS[3] = {	cv::Mat(FRAME_HEIGHT,FRAME_WIDTH, CV_8UC3) ,
+						cv::Mat(CONTROL_AREA, CONTROL_AREA, CV_8UC3),
+						cv::Mat(CONTROL_AREA, CONTROL_AREA, CV_8UC3),
+				  	};
 
 	// 400x400px rect
 	cv::Rect controlROI(SETPOINT_X-CONTROL_AREA/2,SETPOINT_Y-CONTROL_AREA/2,
 						CONTROL_AREA, CONTROL_AREA);
 
-//_ Open camera stream ____________________________
+//===== INITIALIZE CAMERA COMMUNICATION =======================================
+	
 	cv::VideoCapture capture;
 	int CAM_NUMBER = 0;
 	for ( ; CAM_NUMBER<3 ; CAM_NUMBER++){
 		capture.open(CAM_NUMBER);
 		if ( capture.isOpened() ){
-			printf("# /dev/video%d successfully opened\n", CAM_NUMBER);
+			printf("# /dev/video%d successfully opened.\n\n", CAM_NUMBER);
 			break;
 		}
 	}
 	if ( CAM_NUMBER == 3 ){
-		perror("ERROR: NO dev/video* DEVICE CONNECTED");
+		perror("ERROR: NO dev/video* DEVICE CONNECTED\n");
 		exit(EXIT_FAILURE);
 	}
 
 //===== INITIALIZE SERIAL COMMUNICATION =======================================
 
+	if( !set_mcu(MCU) ) exit(EXIT_FAILURE);
+
 	int device_opened = openSerialCommunication(&fd);
 	if( device_opened >= 0 ){
 		setSerialAttributes(fd);
-		printf("# %s successfully opened\n", serialPorts[device_opened]);
+		printf("# %s successfully opened\n", serial_ports[device_opened]);
 	}
 	else{
-		perror("\nERROR: NO /dev/ttyACM* DEVICE CONNECTED");
+		perror("\nERROR: NO MCU DEVICE CONNECTED");
 		exit(EXIT_FAILURE);
 	}
 
@@ -146,6 +151,7 @@ int standard_mode(){
 				exit(EXIT_FAILURE);
 			}
 			printf(" xb: %d    yb: %d\n", ball_pos.x, ball_pos.y);
+			printf("[ %d %d %d %d ]\n", buf[0], buf[1], buf[2], buf[3] );
 			packet_counter++;
 		}
 

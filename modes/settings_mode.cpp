@@ -10,6 +10,7 @@
  */
 
 #include "modes.h"
+#include "../ball_tracker/ball_physic.h"
 #include "../utils.h"
 
 //=============================================================================
@@ -62,12 +63,13 @@ int settings_mode(){
 		if( answ==yes[0] || answ==yes[1] ){
 
            //===== SETUP OPENCV DATA STRUCTURES ==========================================
-	        Mat MATS[3] = {	cv::Mat(FRAME_HEIGHT,FRAME_WIDTH, CV_8UC3) ,
-					cv::Mat(CONTROL_AREA, CONTROL_AREA, CV_8UC3),
-					cv::Mat(CONTROL_AREA, CONTROL_AREA, CV_8UC3),
-				  };	// Mat Array = [ webcam | masked | HSV ]
+			// Mat Array = [ webcam | masked | HSV ]
+	        cv::Mat MATS[3] = {	cv::Mat(FRAME_HEIGHT,FRAME_WIDTH, CV_8UC3) ,
+								cv::Mat(CONTROL_AREA, CONTROL_AREA, CV_8UC3),
+								cv::Mat(CONTROL_AREA, CONTROL_AREA, CV_8UC3)
+							};
 
-					Ball_t ball = createBall(FRAME_WIDTH/2, FRAME_HEIGHT/2);
+			Ball_t ball = createBall(FRAME_WIDTH/2, FRAME_HEIGHT/2);
 	        cv::Mat GUI(FRAME_HEIGHT, FRAME_WIDTH+CONTROL_AREA, CV_8UC3, cv::Scalar(80,70,50));
 	        cv::Mat TOOL(FRAME_HEIGHT-CONTROL_AREA, CONTROL_AREA, CV_8UC3, cv::Scalar(80,70,50));
 	        cv::Rect controlROI(SETPOINT_X-CONTROL_AREA/2,SETPOINT_Y-CONTROL_AREA/2,
@@ -75,7 +77,7 @@ int settings_mode(){
 
             //_ Open camera stream ____________________________
 	        cv::VideoCapture capture;
-	        int CAM_NUMBER = 1;
+	        int CAM_NUMBER = 0;
 	        for ( ; CAM_NUMBER<3 ; CAM_NUMBER++){
 		        capture.open(CAM_NUMBER);
 		        if ( capture.isOpened() ){
@@ -84,17 +86,19 @@ int settings_mode(){
 		        }
 	        }
 	        if ( CAM_NUMBER == 3 ){
-		        perror("ERROR: NO dev/video* DEVICE CONNECTED");
+		        printf("ERROR: NO /dev/video* DEVICE CONNECTED");
 		        exit(EXIT_FAILURE);
 	        }
 
 			createTrackbars();
 			cv::Point gui_pos = cv::Point(1,1);
 			if( getWindowPos(&gui_pos, GUI) != 0 ){
+				cv::moveWindow(windowName, gui_pos.x, gui_pos.y-100);
 				exit(EXIT_FAILURE);
-
 			}
-				while(true){
+
+			Point_t ball_pos;
+			while(true){	// INFINITE LOOP -------------------
 				capture.read(MATS[0]);	//store image to matrix
 				cvtColor(MATS[0](controlROI), MATS[2], COLOR_BGR2HSV);
 				inRange(	MATS[2],
@@ -102,14 +106,15 @@ int settings_mode(){
 							Scalar(H_MAX, S_MAX, V_MAX),
 							MATS[1]);
 				morphOps(MATS[1]);
-				trackFilteredObject(&ball, MATS[1]);
-				drawObjectV2(ball, MATS[0], false);
+
+				trackFilteredObject(&(ball.detected), &ball_pos, MATS[1]);
+				updateBall(&ball, ball_pos.x, ball_pos.y);
+				drawObjectV2(ball.detected, ball_pos, MATS[0], false);
 
 				cvtColor(MATS[1], MATS[1], COLOR_GRAY2BGR);
 				cv::vconcat(MATS[1], TOOL, MATS[1]);
 				cv::hconcat(MATS[1], MATS[0], GUI);
 				cv::imshow(windowName, GUI);
-				cv::moveWindow(windowName, gui_pos.x, gui_pos.y-100);
 				if(waitKey(30) >= 0) break;
 			}
 

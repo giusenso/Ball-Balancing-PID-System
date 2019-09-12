@@ -25,14 +25,16 @@
 #include "../utils.h"
 #include "../serial/serial.h" /*servo specs here*/
 
+#define MYUBRR F_CPU/16/9600-1
+
 #define TCCRA_MASK	(1<<WGM11)|(1<<COM1A1)|(1<<COM1B1);	//NON Inverted PWM
 #define	TCCRB_MASK	(1<<WGM13)|(1<<WGM12)|(1<<CS10);	  //FAST PWM with NO
 
 //---------------------------------------------------------
 void UART_init(void){
   // Set baud rate
-  UBRR0H = (uint8_t)(MYUBRR>>8);
-  UBRR0L = (uint8_t)MYUBRR;
+  UBRR0H = (uint8_t)((MYUBRR)>>8);
+  UBRR0L = (uint8_t)(MYUBRR);
 
   UCSR0C = (1<<UCSZ01) | (1<<UCSZ00);               /* 8-bit data */
   UCSR0B = (1<<RXEN0) | (1<<TXEN0) | (1<<RXCIE0);   /* Enable RX and TX */

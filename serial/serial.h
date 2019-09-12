@@ -19,21 +19,32 @@
 
 #include "../utils.h"
 
-#define BAUD_RATE 9600
-#define MYUBRR (F_CPU/16/BAUD_RATE-1)
+/* baud rates */
+#define	ATMEGA2560_BAUD_RATE	B9600
+#define ESP32_BAUD_RATE			B115200
 
+/* serial ports */
 #define     ttyACM0     "/dev/ttyACM0"
 #define     ttyACM1     "/dev/ttyACM1"
 #define     ttyACM2		"/dev/ttyACM2"
 #define     ttyACM3		"/dev/ttyACM3"
 #define     ttyACM4		"/dev/ttyACM4"
 
-extern const char* serialPorts[5];
+#define     ttyUSB0     "/dev/ttyUSB0"
+#define     ttyUSB1     "/dev/ttyUSB1"
+#define     ttyUSB2    	"/dev/ttyUSB2"
+#define     ttyUSB3     "/dev/ttyUSB3"
+#define     ttyUSB4     "/dev/ttyUSB4"
 
+
+const extern char* serial_ports[5];
+extern int baud_rate;
 
 //___funcion signature_________________________________
+bool set_mcu(int _mcu);
 int openSerialCommunication(int* fd);
-void closeSerialCommunication(int* fd, Point_t* ball);
 void setSerialAttributes(int fd);
+void encodeConfig(Point_t* ball_pos, uint8_t* buf);
+void closeSerialCommunication(int* fd, Point_t* ball);
 
 #endif

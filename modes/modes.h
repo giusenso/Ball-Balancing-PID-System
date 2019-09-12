@@ -1,6 +1,7 @@
 #ifndef MODES_H
 #define MODES_H
 
+
 #include <stdlib.h>
 #include <unistd.h>
 #include "../ball_tracker/ball_tracker.h"	/* 	computer vision and GUI			*/

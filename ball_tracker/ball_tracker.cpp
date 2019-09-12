@@ -226,8 +226,9 @@ void morphOps(Mat &thresh){
  * detect the ball from the treshold Mat Moments Method,
  * and call updateBall()/createBall() function.
  * 
- * @param ball Ball_t object
- * @param threshold 
+ * @param ball_detected boolean
+ * @param ball position (x,y)
+ * @param threshold MAT object
  */
 void trackFilteredObject(bool* ball_detected, Point_t* ball, Mat threshold){
 	//bool noise_error = false;
