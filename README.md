@@ -3,18 +3,18 @@
 
 Compile and run with one of this flag:
 
-[1] "./run -s"
- 	standard mode: better performance but minimal GUI
+[1] 	"./run "
+ 	standard mode: better performance, minimal GUI
 
-[2]	"./run -settings"
+[2]	"./run -s"
 	setting mode: set pid gains and computer vision parameters
  
-[3]	"./run -debug"
+[3]	"./run -d"
   	debug moded: start debug mode: a better GUI and print utilities,
  	little bit slower than standard mode
   
-[4]	"./run -manual"
-  	manual mode: platform can be controlled directly from terminal.
+[4]	"./run -m"
+  	manual mode: platform can be controlled directly from terminal/joypad.
 
 	*note: one and only one flag can be used
 
