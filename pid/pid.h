@@ -29,6 +29,7 @@ typedef struct PID_t{
     short error[2];
     float dt;
     uint16_t output[2];
+    float P, I, D;
     short integral;
     uint16_t min, max;
     bool inverted_mode;

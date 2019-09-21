@@ -45,6 +45,9 @@ PID_t createPID(float _Kp, float _Ki, float _Kd,
         .error      =   { 0,0 },
         .dt         =   0.01,
         .output     =   { 0,0 }, 
+        .P          =   0,
+        .I          =   0,
+        .D          =   0,
         .integral   =   0,
         .min        =   min_angle,
         .max        =   max_angle,
@@ -92,12 +95,13 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball_t ball) {
     ball.smooth_dx = saturationFilter(ball.smooth_dx, -150, +150);
     if(!pidX->inverted_mode) ball.smooth_dx = -ball.smooth_dx;
     
+    pidX->P = pidX->Kp * pidX->error[0];
+    pidX->I = pidX->Ki * pidX->integral;
+    pidX->D = pidX->Kd * (ball.smooth_dx/pidX->dt);
+
     //output
     pidX->output[0] =
-            X_HALF_ANGLE +
-            pidX->Kp * pidX->error[0] +
-            pidX->Ki * pidX->integral +
-            pidX->Kd * (ball.smooth_dx/pidX->dt);
+            X_HALF_ANGLE + pidX->P + pidX->I + pidX->D;
 
      //output filter   
     pidX->output[0] = saturationFilter(pidX->output[0], pidX->output[1]-1500, pidX->output[1]+1500);
@@ -123,12 +127,13 @@ void PIDCompute(PID_t* pidX, PID_t* pidY, Ball_t ball) {
     ball.smooth_dy = saturationFilter(ball.smooth_dy, -150, +150);
     if(!pidY->inverted_mode) ball.smooth_dy = -ball.smooth_dy;
     
+    pidY->P = pidY->Kp * pidY->error[0];
+    pidY->I = pidY->Ki * pidY->integral;
+    pidY->D = pidY->Kd * (ball.smooth_dy/pidY->dt);
+
     //output
     pidY->output[0] =
-            Y_HALF_ANGLE +
-            pidY->Kp * pidY->error[0] +
-            pidY->Ki * pidY->integral +
-            pidY->Kd * (ball.smooth_dy/pidY->dt);
+            Y_HALF_ANGLE + pidY->P + pidY->I + pidY->D;
     
     //output filter 
     pidY->output[0] = saturationFilter(pidY->output[0], pidY->output[1]-1500, pidY->output[1]+1500);

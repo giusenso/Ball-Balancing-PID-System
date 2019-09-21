@@ -2,13 +2,14 @@
  * @file standard_mode.cpp
  * @author Giuseppe Sensolini
  * @brief STANDARD MODE
- * @version 2.1
+ * @version 1.3
  * @date 2019-03-20
  *
  * @copyright Copyright (c) 2019
  *
  */
 
+#include <fstream>
 #include "modes.h"
 #include "../utils.h"
 
@@ -118,7 +119,7 @@ int standard_mode(){
 	if( getWindowPos(&window_pos, MATS[1]) != 0 ){
 		exit(EXIT_FAILURE);
 	}
-	else cv::moveWindow(windowName, window_pos.x, window_pos.y-100);
+	//else cv::moveWindow(windowName, window_pos.x, window_pos.y);
 
 //=============================================================================
 
@@ -141,6 +142,12 @@ int standard_mode(){
 //=============================================================================
 //:::::::::::::: MAIN LOOP ::::::::::::::::::::::::::::::::::::::::::::::::::::
 //=============================================================================
+	//initialize csv file
+	std::ofstream csv_file;
+	csv_file.open("pid_output_data.csv");
+	csv_file << "kp,"<<XPID.Kp<<"\nki,"<<XPID.Ki<<"\nkd,"<<XPID.Kd<<"\n";
+	csv_file << "x_ball_setpoint,"<<XPID.setpoint<< "\ny_ball_setpoint,"<<YPID.setpoint<<"\n\n";
+	csv_file << "frame,x_ball,x_p,x_i,x_d,x_output,y_ball,y_p,y_i,y_d,y_output\n";
 
 	while(true){
 		//start = clock();	//This timer can be used to change dt every iteration
@@ -171,6 +178,8 @@ int standard_mode(){
 				perror("Error: write() syscall failed");
 				exit(EXIT_FAILURE);
 			}
+			//write on csv file
+			csv_file <<frame_counter<<","<<ball.x[0]<<","<<XPID.P<<","<<XPID.I<<","<<XPID.D<<","<<XPID.output[0]<<","<<ball.y[0]<<","<<YPID.P<<","<<YPID.I<<","<<YPID.D<<","<<YPID.output[0]<<"\n";
 		}
 
 		//end = clock();
@@ -180,6 +189,7 @@ int standard_mode(){
 		frame_counter++;
 		if(waitKey(1) >= 0) break;
 	}
+	csv_file.close();
 
 //=============================================================================
 //::::::: EXIT ROUTINE ::::::::::::::::::::::::::::::::::::::::::::::::::::::::
