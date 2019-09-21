@@ -1,3 +1,3 @@
 make clean
 make
-make servo.hex
+make avr_code.hex

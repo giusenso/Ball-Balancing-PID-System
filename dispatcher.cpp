@@ -55,10 +55,12 @@ int main(int argc, char* argv[]){
 				break;
 				
 			case 'd':
+				printf("Not yet implemented! This mode is avaible only for Version 1.x")
 				//debug_mode();
 				break;
 
 			case 'm':
+				printf("Not yet implemented! This mode is avaible only for Version 1.x")
 				//manual_mode();
 				break; 		
 			

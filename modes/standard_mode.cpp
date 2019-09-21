@@ -72,15 +72,14 @@ int standard_mode(){
 	printf("# write_buffer allocated\n");
 
 //===== SETUP DATA STRUCTURES =================================================
-/*
-//_ PID setup ___________________________________
+
+//_ Read PID setup ___________________________________
 	printf("\n# create PID objects... ");
 	float x_gains[3], y_gains[3];
 	arrayFromTextFile(pid_data_file_name, x_gains, 1);
 	arrayFromTextFile(pid_data_file_name, y_gains, 2);
-*/
-//_ Ball setup ___________________________________
-	bool ball_detected = false;
+
+//_ Ball setup _______________________________________
 	Point_t ball_pos = {
 		.x = FRAME_WIDTH/2,
 		.y = FRAME_HEIGHT/2
@@ -108,7 +107,7 @@ int standard_mode(){
 	if( getWindowPos(&window_pos, MATS[1]) != 0 ){
 		exit(EXIT_FAILURE);
 	}
-	//else cv::moveWindow(windowName, window_pos.x, window_pos.y-100);
+	//else cv::moveWindow(windowName, window_pos.x, window_pos.y);
 //=============================================================================
 
 	char tmp;

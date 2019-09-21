@@ -25,7 +25,7 @@
 # to be uploaded on the avr
 # you can add multiple files, they will be all generated
 
-BINS=servo.elf 
+BINS = avr_code.elf 
 
 # put here the additional .o files you want to generate
 # one .c file for each .o should be present
