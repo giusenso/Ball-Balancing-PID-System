@@ -56,10 +56,4 @@ Compile and run with one of this flag:
 
 Time response here
 
-Video test can be found here
-
-## Development
-
-### Roadmap
-
-### Future upgrade
+Video test can be found here:
