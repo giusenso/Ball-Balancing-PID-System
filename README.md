@@ -52,8 +52,4 @@ Compile and run with one of this flag:
 
 	*note: one and only one flag can be used*
 
-## Performance
-
-Time response here
-
-Video test can be found here:
+## TEST
