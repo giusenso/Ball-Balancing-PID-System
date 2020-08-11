@@ -5,8 +5,7 @@
 * [Hardware](#hardware)
 * [Technologies](#technologies)
 * [How to use it](#how-to-use-it)
-* [Performance](#performance)
-* [Development](#development)
+* [Test](#test)
 
 ## Project description
 This project is designed to be modular. Every module can work stand-alone with it's own testing unit.
@@ -52,4 +51,4 @@ Compile and run with one of this flag:
 
 	*note: one and only one flag can be used*
 
-## TEST
+## Test
