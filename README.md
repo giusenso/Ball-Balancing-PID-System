@@ -21,7 +21,7 @@ The project is designed to be modular. There are 4 main modules, every one of th
 
 ![picture](img/computer_vision_algorithm.png)
 
-## Hardware:
+## Hardware
 * microcontroller: Atmega2560
 * Servos: DS3218MG 5V-6.8V
 * USB camera: 640x480
