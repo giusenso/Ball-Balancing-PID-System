@@ -8,7 +8,7 @@
 * [How to use it](#how-to-use-it)
 
 ## Project description
-The _Ball Balancing PID System_ is a cheap multidisciplinary project I developed during my BSc in Automation Engineering.
+The _Ball Balancing PID System_ is a cheap multidisciplinary project I developed in 2018 during my BSc in Automation Engineering.
 The project is designed to be modular. There are 4 main modules, every one of them can also work stand-alone.
 
 1. **Computer Vision** Module: acquire ball position using OpenCV libs.
