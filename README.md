@@ -11,13 +11,13 @@
 The _Ball Balancing PID System_ is a cheap multidisciplinary project I developed in 2018 during my BSc in Automation Engineering.
 The project is designed to be modular; there are 4 main stand-alone modules:
 
-1. **Computer Vision** Module: acquire ball position using OpenCV libs.
+1. **Computer Vision** Module: acquires and preprocess ball position using OpenCV libs.
 
-2. **PID Module**: filter and compute signal.
+2. **PID** Module: filters and computes the control input through a digital PI-D.
 
-3. **Serial Communication** Module: provide beetwen PC and AVR device.
+3. **Serial Communication** Module: it provides communication beetwen PC and microcontroller.
 
-4. **Actuation** Module: this code run on avr, wait for incoming packet and move servos.
+4. **Actuation** Module: embedded software running on microcontroller. It uses interrupts to detects incoming packets and it moves servo motors.
 
 ![picture](img/computer_vision_algorithm.png)
 
