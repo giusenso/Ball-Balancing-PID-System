@@ -9,8 +9,6 @@
 
 ## Project description
 This project is designed to be modular. Every module can work stand-alone with it's own testing unit.
-![Platform](https://github.com/JiuSenso/Ball-Balancing-PID-System/tree/master/pics/platform.jpg)
-![Computer vision algorithm](https://github.com/JiuSenso/Ball-Balancing-PID-System/tree/master/pics/computer_vision_algorithm.png)
 
 [1] Computer Vision Module: acquire ball position using OpenCV libs.
 
