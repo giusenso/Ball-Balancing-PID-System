@@ -1,7 +1,7 @@
 # Ball Balancing PID Systems
 ![picture](img/platform.jpg)
 
-## table of contents
+## Table of contents
 * [Project description](#project-description)
 * [Hardware](#hardware)
 * [Technologies](#technologies)
@@ -9,6 +9,8 @@
 
 ## Project description
 The _Ball Balancing PID System_ is a cheap multidisciplinary project I developed in 2018 during my BSc in Automation Engineering.
+This system holds a ball in balance on a 2-axis tiltable plate. A webcam is placed above the system, connected to a computer running a real time computer vision algorithm for ball detection. A feedback control law is computed by means of 2 PID controllers. Finally, a microcontroller actuates a pair a of servo motors, stabilizing the ball over the plate.
+
 The project is designed to be modular; there are 4 main stand-alone modules:
 
 1. _**Computer Vision** Module_: acquires and preprocess ball position using OpenCV libs.
@@ -17,7 +19,7 @@ The project is designed to be modular; there are 4 main stand-alone modules:
 
 3. _**Serial Communication** Module_: it provides communication beetwen PC and microcontroller.
 
-4. _**Actuation** Module_: embedded software running on microcontroller. It uses interrupts to detects incoming packets and it moves servo motors.
+4. _**Actuation** Module_: embedded software running on microcontroller. It uses interrupts to detects incoming packets and drives servo motors.
 
 ![picture](img/computer_vision_algorithm.png)
 
