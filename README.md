@@ -1,5 +1,5 @@
 # Ball Balancing PID Systems
-![picture](img/platform.jpg)
+<img src="img/platform.jpg" align="center" width="800"/>
 
 ## Table of contents
 * [Project description](#project-description)
@@ -21,13 +21,15 @@ The project is designed to be modular; there are 4 main stand-alone modules:
 
 4. _**Actuation** Module_: embedded software running on microcontroller. It uses interrupts to detects incoming packets and drives servo motors.
 
-![picture](img/computer_vision_algorithm.png)
+<img src="img/test2.gif" align="center"/>
 
 ## Hardware
-* microcontroller: Atmega2560
+* microcontroller: ATmega2560
 * Servos: DS3218MG 5V-6.8V
 * USB camera: 640x480
 * Battery pack: 6V, 2850mAh
+
+<img src="img/ball_balancing_pid_system.JPG" align="center" height="400"/>
 
 ## Technologies
 * OS: Ubuntu 16.04
@@ -35,6 +37,7 @@ The project is designed to be modular; there are 4 main stand-alone modules:
 * Compilers: gcc 5.4.0, avr-gcc 4.9.2
 * Additional libs: OpenCV 3.4.1
 
+<img src="img/computer_vision_algorithm.png" align="center" height="400"/>
 
 ## How to use it
 Compile and run with one of this flag:
@@ -60,3 +63,5 @@ Compile and run with one of this flag:
 ```
 
 *note: one and only one flag can be used*
+
+<img src="img/test3.gif" align="center"/>
