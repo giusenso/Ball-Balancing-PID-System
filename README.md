@@ -7,6 +7,8 @@
 * [Project description](#project-description)
 * [Hardware](#hardware)
 * [Technologies](#technologies)
+* [Software Workflow](#software-workflow)
+* [Control System](#control-system)
 * [How to use it](#how-to-use-it)
 
 ## Project description
@@ -27,7 +29,7 @@ The project is designed to be modular; there are 4 main stand-alone modules:
 4. _**Actuation** Module_: embedded software running on microcontroller. It uses interrupts to detects incoming packets and drives servo motors.
 
 <p align="center">
-  <img src="img/ball_balancing_pid_system.JPG" align="center" height="400"/>
+  <img src="img/ball_balancing_pid_system.JPG" height="400"/>
 </p>
 
 ## Hardware
@@ -42,7 +44,24 @@ The project is designed to be modular; there are 4 main stand-alone modules:
 * Compilers: gcc 5.4.0, avr-gcc 4.9.2
 * Additional libs: OpenCV 3.4.1
 <p align="center">
-  <img src="img/computer_vision_algorithm.png" align="center" height="400"/>
+  <img src="img/computer_vision_algorithm.png" height="400"/>
+</p>
+
+## Software Workflow
+General overview:
+<p align="center">
+  <img src="img/system_workflow.png" width="600"/>
+</p>
+
+PC side detailed workflow:
+<p align="center">
+  <img src="img/software_workflow.png" width="600"/>
+</p>
+
+# Control System
+Double PID control scheme:
+<p align="center">
+  <img src="img/control_system.png" height="600"/>
 </p>
 
 ## How to use it
